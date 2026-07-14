@@ -117,6 +117,17 @@ A continuación se detallan las tareas, mejoras y correcciones aplicadas al proy
    - Creación del store centralizado `useCourseStore.ts` para manejar de forma unificada el estado del progreso de lecciones, estados de guardado en el servidor y sincronización dinámica.
    - Refactorización de la isla de React `SeccionProgressTracker.tsx` para consumir el store de Zustand de manera reactiva, reduciendo la lógica inline en componentes e implementando estados de carga dinámicos al actualizar elementos.
 
+9. **⚙️ Enrutamiento Dinámico y Sincronización del Creador (Astro DB)**
+   - Migración de las lecturas y consultas de Secciones y Lecciones de archivos estáticos (Content Collections) a consultas relacionales dinámicas en tiempo real a través de Astro DB.
+   - Modificación del endpoint `/api/crear` para que, al registrar contenido nuevo, inserte la fila en la base de datos de inmediato además de escribir el Markdown en disco.
+   - Actualización del selector en el modal `CreatorButton.astro` para alimentarse dinámicamente de Astro DB, permitiendo que cualquier sección nueva aparezca al instante sin reindexaciones.
+
+10. **💾 Persistencia Híbrida de Zustand y Optimización de Hidratación SSR**
+    - Añadida tolerancia a los reinicios de base de datos en desarrollo de Astro DB mediante la persistencia local de Zustand con el middleware `persist`.
+    - Implementación del algoritmo de auto-curación `syncSectionProgress` que reconcilia el progreso en `localStorage` y vuelve a sincronizarlo con Astro DB si esta se reinicia.
+    - Resolución del warning `getServerSnapshot` de React 18/19 retirando literales de array de los selectores de Zustand y agregando control de hidratación (`hasHydrated`) para anular discrepancias HTML de SSR y dejar la consola del navegador limpia de errores.
+    - Integración de metaetiquetas semánticas completas de SEO, canonicals, Open Graph (Facebook y redes sociales) y Twitter Cards en `BaseLayout.astro`.
+
 ---
 
 ## 🧞 Comandos de Desarrollo
