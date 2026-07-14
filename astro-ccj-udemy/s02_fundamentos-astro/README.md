@@ -61,6 +61,41 @@ src/
     ├── course.ts        # Tipos de contenido (Curso, Sección, Lección)
     └── layout.ts        # Tipos de layout props
 ```
+## 🛠️ Historial de Tareas y Cambios Realizados
+
+A continuación se detallan las tareas, mejoras y correcciones aplicadas al proyecto en esta sesión:
+
+1. **🌗 Corrección e Integración del Cambiador de Tema (Theme Switcher)**
+   - Corregida la pérdida de eventos `onclick` al navegar con View Transitions mediante el registro en `astro:page-load`.
+   - Implementado atajo de teclado global `Ctrl + L` para alternar entre temas rápidamente.
+   - Guardado y recuperación del estado del tema en `localStorage` bajo la llave `theme-preference`.
+
+2. **📈 Motor de Progreso Dinámico y Sincronización**
+   - Implementado cálculo reactivo de progreso porcentual individual por sección y progreso global de avance en el bento grid de la página principal.
+   - Sincronizado automáticamente el progreso real del estudiante (Sección 01 completada al 100% y Sección 02 completada hasta la lección 11) en `localStorage` al iniciar la app.
+   - Persistencia completa y en tiempo real del estado de cada checkbox bajo el namespace `progreso-astro-wordpress-[slug]`, reactivo a cambios en múltiples pestañas del navegador.
+
+3. **➕ Creador de Contenidos Local (API & Formulario)**
+   - Diseñado un endpoint API local en `src/pages/api/crear.ts` (con soporte para compilaciones estáticas de Astro mediante adaptador de Node y opción `prerender = false`).
+   - Creado el componente de botón flotante y modal emergente `CreatorButton.astro` que permite registrar secciones y lecciones físicamente en disco (en formato Markdown en `src/content/`) directamente desde la interfaz web sin manipular archivos manualmente.
+
+4. **🎨 Diseño y Estética con Paletas Nativas de Tailwind**
+   - Convertidos todos los colores hexadecimales a formato flexible `hsla()` en `global.css`.
+   - Mapeado el diseño a la paleta nativa de Tailwind CSS (Slate para grises, Indigo para primarios, Pink para secundarios, Green para éxito, Amber para advertencias y Red para errores).
+   - Establecido un borde estático de `2px` en todas las tarjetas para evitar saltos bruscos de maquetación (Layout Shift) al cambiar de estado.
+   - Diseñado un estado completado enriquecido en verde: al alcanzar el 100% de progreso o marcar una lección, toda la tarjeta (textos, títulos, barras y checkboxes) adopta variantes armónicas de verde (`green-50` / `green-950` de fondo, `green-800` / `green-200` de texto).
+   - Aplicado la propiedad de CSS moderno `accent-color` para teñir los checkboxes de verde success al estar seleccionados.
+
+5. **🔍 Tipado y Limpieza de Errores (TypeScript & Linter)**
+   - Añadidas dependencias de desarrollo (`@astrojs/check`, `typescript@~5.7.0`, `@types/node`).
+   - Resueltos el 100% de los errores del compilador (`astro check` retorna 0 errores, 0 warnings).
+   - Corregidos errores de referencias nulas (`modal possibly null`) en los scripts de la UI.
+   - Depurada la carpeta `.agents/`, eliminando archivos mal formateados y configurando 5 perfiles de agentes de IA especializados en el stack del proyecto (`astro-specialist`, `tailwind-styling-expert`, `wordpress-integration-agent`, `content-manager-agent` y `typescript-type-safety-agent`).
+
+6. **📁 Estructura Limpia del Plan de Estudios**
+   - Eliminados todos los archivos Markdown de lecciones y secciones que servían como ejemplo o que corresponden a clases no alcanzadas aún por el estudiante.
+   - Añadidos enlaces directos relativos en este README.md para acceder y editar rápidamente los archivos locales del plan de estudios.
+   - Limpieza de ramas en git (worktree removido y rama local de desarrollo `opencode/lucky-river` borrada).
 
 ---
 
