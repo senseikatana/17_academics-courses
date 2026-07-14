@@ -8,9 +8,15 @@
   --color-primary: hsla(243, 75%, 59%, 1);     /* indigo-600 */
   --color-primary-hover: hsla(244, 55%, 41%, 1); /* indigo-700 */
   --color-secondary: hsla(330, 81%, 60%, 1);   /* pink-500 */
-  --color-success: hsla(142, 76%, 36%, 1);     /* green-600 */
+  
+  /* Estados de Éxito (Green shades de Tailwind) */
+  --color-success-bg: hsla(142, 69%, 97%, 1);    /* green-50 */
+  --color-success-text: hsla(142, 63%, 24%, 1);  /* green-800 */
+  --color-success-muted: hsla(142, 72%, 29%, 1); /* green-700 */
+  --color-success-border: hsla(142, 72%, 45%, 1);/* green-500 */
+  --color-success: hsla(142, 76%, 36%, 1);       /* green-600 */
   --color-success-shadow: hsla(142, 76%, 36%, 0.15);
-  --color-success-bg: hsla(142, 76%, 36%, 0.05);
+
   --color-warning: hsla(35, 92%, 44%, 1);      /* amber-600 */
   --color-error: hsla(0, 72%, 51%, 1);        /* red-600 */
   --color-card: hsla(0, 0%, 100%, 1);          /* white */
@@ -29,9 +35,16 @@ html.dark {
   --color-primary: hsla(234, 89%, 74%, 1);     /* indigo-400 */
   --color-primary-hover: hsla(239, 84%, 67%, 1); /* indigo-500 */
   --color-secondary: hsla(329, 86%, 70%, 1);   /* pink-400 */
-  --color-success: hsla(142, 72%, 45%, 1);     /* green-500 */
+
+  /* Estados de Éxito (Green shades de Tailwind en Oscuro) */
+  --color-success-bg: hsla(142, 76%, 10%, 1);    /* green-950 */
+  --color-success-text: hsla(142, 72%, 85%, 1);  /* green-200 */
+  --color-success-muted: hsla(142, 71%, 73%, 1); /* green-300 */
+  --color-success-border: hsla(142, 72%, 58%, 1);/* green-400 */
+  --color-success: hsla(142, 72%, 45%, 1);       /* green-500 */
   --color-success-shadow: hsla(142, 72%, 45%, 0.3);
-  --color-success-bg: hsla(142, 72%, 45%, 0.08);
+  --color-success-bg-legacy: hsla(142, 72%, 45%, 0.08);
+
   --color-warning: hsla(43, 96%, 56%, 1);      /* amber-400 */
   --color-error: hsla(0, 84%, 60%, 1);        /* red-500 */
   --color-card: hsla(217, 33%, 17%, 1);        /* slate-800 */
@@ -75,13 +88,32 @@ body {
    ======================================== */
 
 .card {
-  @apply bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5
-         transition-all duration-300;
+  border: 3px solid var(--color-border);
+  @apply bg-[var(--color-card)] rounded-xl p-5 transition-all duration-300;
 }
 
 .border-completed {
-  border-color: var(--color-success) !important;
+  border-color: var(--color-success-border) !important;
+  background-color: var(--color-success-bg) !important;
   box-shadow: 0 4px 20px -2px var(--color-success-shadow) !important;
+}
+
+/* Tipografía de tarjetas completadas en verde */
+.border-completed h1,
+.border-completed h2,
+.border-completed h3,
+.border-completed h4,
+.border-completed p,
+.border-completed span:not(.pill-badge),
+.border-completed div {
+  color: var(--color-success-text) !important;
+}
+
+.border-completed p.text-xs,
+.border-completed span[data-progreso-texto],
+.border-completed #progreso-seccion-texto,
+.border-completed .text-\[var\(--color-muted\)\] {
+  color: var(--color-success-muted) !important;
 }
 
 .text-success {
@@ -105,8 +137,22 @@ input[type="checkbox"] {
 }
 
 .leccion-item:has(input[type="checkbox"]:checked) {
-  border-color: var(--color-success) !important;
+  border-color: var(--color-success-border) !important;
   background-color: var(--color-success-bg) !important;
+}
+
+.leccion-item:has(input[type="checkbox"]:checked) label {
+  color: var(--color-success-text) !important;
+}
+
+.pill-badge {
+  @apply inline-block px-3 py-1 rounded-full text-xs font-semibold
+         bg-[var(--color-primary)]/10 text-[var(--color-primary)];
+}
+
+.border-completed .pill-badge {
+  background-color: var(--color-success-bg) !important;
+  color: var(--color-success-text) !important;
 }
 
 .card-hover {
@@ -116,6 +162,11 @@ input[type="checkbox"] {
 .badge {
   @apply flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold
          bg-[var(--color-primary)]/10 text-[var(--color-primary)] shrink-0;
+}
+
+.border-completed .badge {
+  background-color: var(--color-success-bg) !important;
+  color: var(--color-success-text) !important;
 }
 
 /* ========================================
