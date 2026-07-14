@@ -1,19 +1,39 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { db, ProgresoLeccion } from 'astro:db';
-import type { Curso, Seccion, Leccion } from '../types';
+import { db, Seccion, Leccion, ProgresoLeccion } from 'astro:db';
+import type { Curso } from '../types';
 
 const [curso]: Curso[] = await getCollection('curso');
-const secciones: Seccion[] = await getCollection('secciones');
-secciones.sort((a, b) => a.data.orden - b.data.orden);
-const lecciones: Leccion[] = await getCollection('lecciones');
+
+// Obtener Secciones desde Astro DB
+const dbSecciones = await db.select().from(Seccion);
+dbSecciones.sort((a, b) => a.orden - b.orden);
+const secciones = dbSecciones.map((s) => ({
+  data: {
+    id: s.id,
+    titulo: s.titulo,
+    slug: s.slug,
+    orden: s.orden
+  }
+}));
+
+// Obtener Lecciones desde Astro DB
+const dbLecciones = await db.select().from(Leccion);
+const lecciones = dbLecciones.map((l) => ({
+  data: {
+    id: l.id,
+    titulo: l.titulo,
+    seccionId: l.seccionId,
+    orden: l.orden
+  }
+}));
 
 // Obtener todas las lecciones completadas desde Astro DB
 const completedRows = await db.select().from(ProgresoLeccion);
 const completedSet = new Set(completedRows.map((r) => r.leccionId));
 
-const leccionesPorSeccion = new Map<string, Leccion[]>();
+const leccionesPorSeccion = new Map<string, any[]>();
 for (const l of lecciones) {
   const secId = l.data.seccionId;
   if (!leccionesPorSeccion.has(secId)) {
@@ -37,7 +57,6 @@ const seccionesConProgreso = secciones.map((seccion) => {
   return {
     seccion,
     totalLecciones,
-    hechasLecciones,
     pct,
     isCompleted,
   };

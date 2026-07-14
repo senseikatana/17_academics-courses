@@ -1,9 +1,16 @@
 ---
-import { getCollection } from 'astro:content';
-import type { Seccion } from '../types';
+import { db, Seccion } from 'astro:db';
 
-const secciones: Seccion[] = await getCollection('secciones');
-secciones.sort((a, b) => a.data.orden - b.data.orden);
+const dbSecciones = await db.select().from(Seccion);
+dbSecciones.sort((a, b) => a.orden - b.orden);
+const secciones = dbSecciones.map((s) => ({
+  data: {
+    id: s.id,
+    titulo: s.titulo,
+    slug: s.slug,
+    orden: s.orden
+  }
+}));
 ---
 
 <!-- Botón Flotante "+" -->

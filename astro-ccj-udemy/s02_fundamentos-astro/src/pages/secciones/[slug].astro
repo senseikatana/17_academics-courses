@@ -1,25 +1,61 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { db, ProgresoLeccion, eq } from 'astro:db';
+import { db, Seccion, Leccion, ProgresoLeccion, eq } from 'astro:db';
 import { SeccionProgressTracker } from '../../components';
-import type { Curso, Seccion, Leccion } from '../../types';
+import type { Curso } from '../../types';
 
 const { slug } = Astro.params;
-const secciones: Seccion[] = await getCollection('secciones');
-secciones.sort((a, b) => a.data.orden - b.data.orden);
-const seccion = secciones.find((s) => s.data.slug === slug);
-if (!seccion) {
+
+// Obtener todas las Secciones desde Astro DB
+const dbSecciones = await db.select().from(Seccion);
+dbSecciones.sort((a, b) => a.orden - b.orden);
+
+const dbSeccion = dbSecciones.find((s) => s.slug === slug);
+if (!dbSeccion) {
   return Astro.redirect('/404');
 }
 
-const lecciones: Leccion[] = (await getCollection('lecciones'))
-  .filter((l) => l.data.seccionId === seccion.data.id)
-  .sort((a, b) => a.data.orden - b.data.orden);
+const seccion = {
+  data: {
+    id: dbSeccion.id,
+    titulo: dbSeccion.titulo,
+    slug: dbSeccion.slug,
+    orden: dbSeccion.orden
+  }
+};
 
-const idx = secciones.findIndex((s) => s.data.id === seccion.data.id);
-const seccionAnterior = idx > 0 ? secciones[idx - 1] : null;
-const seccionSiguiente = idx < secciones.length - 1 ? secciones[idx + 1] : null;
+// Obtener Lecciones desde Astro DB para la sección actual
+const dbLecciones = await db.select().from(Leccion);
+const lecciones = dbLecciones
+  .filter((l) => l.seccionId === seccion.data.id)
+  .sort((a, b) => a.orden - b.orden)
+  .map((l) => ({
+    data: {
+      id: l.id,
+      titulo: l.titulo,
+      seccionId: l.seccionId,
+      orden: l.orden
+    }
+  }));
+
+const idx = dbSecciones.findIndex((s) => s.id === seccion.data.id);
+const seccionAnterior = idx > 0 ? {
+  data: {
+    id: dbSecciones[idx - 1].id,
+    titulo: dbSecciones[idx - 1].titulo,
+    slug: dbSecciones[idx - 1].slug,
+    orden: dbSecciones[idx - 1].orden
+  }
+} : null;
+const seccionSiguiente = idx < dbSecciones.length - 1 ? {
+  data: {
+    id: dbSecciones[idx + 1].id,
+    titulo: dbSecciones[idx + 1].titulo,
+    slug: dbSecciones[idx + 1].slug,
+    orden: dbSecciones[idx + 1].orden
+  }
+} : null;
 
 const [curso]: Curso[] = await getCollection('curso');
 

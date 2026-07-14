@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import fs from 'fs';
 import path from 'path';
+import { db, Seccion, Leccion } from 'astro:db';
 
 export const prerender = false;
 
@@ -47,8 +48,18 @@ orden: ${Number(orden)}
 ---
 `;
 
+      // 1. Guardar archivo físico Markdown
       fs.writeFileSync(filePath, content, 'utf8');
-      return new Response(JSON.stringify({ success: true, message: `Sección creada en ${fileName}` }), { status: 200 });
+
+      // 2. Guardar en base de datos Astro DB para reflejo inmediato en UI
+      await db.insert(Seccion).values({
+        id,
+        titulo,
+        slug,
+        orden: Number(orden)
+      });
+
+      return new Response(JSON.stringify({ success: true, message: `Sección creada en ${fileName} y registrada en base de datos.` }), { status: 200 });
 
     } else if (tipo === 'leccion') {
       const { seccionId, lessonNumber, titulo, duracion } = body;
@@ -70,8 +81,18 @@ orden: ${Number(lessonNumber)}
 ---
 `;
 
+      // 1. Guardar archivo físico Markdown
       fs.writeFileSync(filePath, content, 'utf8');
-      return new Response(JSON.stringify({ success: true, message: `Lección creada en ${fileName}` }), { status: 200 });
+
+      // 2. Guardar en base de datos Astro DB para reflejo inmediato en UI
+      await db.insert(Leccion).values({
+        id: `${seccionId}-${lessonPad}`,
+        titulo: fullTitle,
+        seccionId,
+        orden: Number(lessonNumber)
+      });
+
+      return new Response(JSON.stringify({ success: true, message: `Lección creada en ${fileName} y registrada en base de datos.` }), { status: 200 });
     }
 
     return new Response(JSON.stringify({ error: "Tipo de creación no reconocido." }), { status: 400 });

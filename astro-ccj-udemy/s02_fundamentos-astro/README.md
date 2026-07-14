@@ -156,3 +156,5 @@ A continuación se detallan los enlaces a los archivos físicos de cada sección
 - [Lección 10: Componentes en Astro](src/content/lecciones/02-10_componentes-astro.md)
 - [Lección 11: Props en Componentes](src/content/lecciones/02-11_props-componentes.md)
 - [Lección 12: Añadiendo Interfaces a Props para mejor DX](src/content/lecciones/02-12_anadiendo-interfaces-props-dx.md)
+- [Lección 13: Assets y Public ¿Dónde colocar las imágenes en Astro?](src/content/lecciones/02-13_assets-y-public-donde-colocar-las-imagenes-en-astro.md)
+- [Lección 14: El Componente Image de Astro](src/content/lecciones/02-14_el-componente-image-de-astro.md)
