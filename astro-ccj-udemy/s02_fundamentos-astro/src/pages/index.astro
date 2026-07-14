@@ -131,11 +131,21 @@ const totalSecciones = secciones.length;
 
         const barra = el.querySelector('[data-progreso-barra]') as HTMLElement;
         const texto = el.querySelector('[data-progreso-texto]');
-        if (barra) barra.style.width = pct + '%';
+        if (barra) {
+          barra.style.width = pct + '%';
+          if (pct === 100) {
+            barra.style.backgroundColor = 'var(--color-success)';
+          } else {
+            barra.style.backgroundColor = '';
+          }
+        }
         if (texto) texto.textContent = pct + '%';
 
         if (totalLecciones > 0 && hechas >= totalLecciones) {
           completadas++;
+          htmlEl.classList.add('border-completed');
+        } else {
+          htmlEl.classList.remove('border-completed');
         }
       }
     });
@@ -145,6 +155,11 @@ const totalSecciones = secciones.length;
     if (barraGlobal && textoGlobal) {
       const pctGlobal = total > 0 ? Math.round((completadas / total) * 100) : 0;
       barraGlobal.style.width = pctGlobal + '%';
+      if (pctGlobal === 100) {
+        barraGlobal.style.backgroundColor = 'var(--color-success)';
+      } else {
+        barraGlobal.style.backgroundColor = '';
+      }
       textoGlobal.textContent = `${completadas} / ${total}`;
     }
   }

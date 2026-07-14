@@ -193,8 +193,24 @@ const [curso]: Curso[] = await getCollection('curso');
       const hechas = Array.from(checkboxes).filter((cb) => cb.checked).length;
       const pct = totalLecciones > 0 ? (hechas / totalLecciones) * 100 : 0;
 
-      if (barraProgreso) barraProgreso.style.width = pct + '%';
+      if (barraProgreso) {
+        barraProgreso.style.width = pct + '%';
+        if (pct === 100) {
+          barraProgreso.style.backgroundColor = 'var(--color-success)';
+        } else {
+          barraProgreso.style.backgroundColor = '';
+        }
+      }
       if (textoProgreso) textoProgreso.textContent = `${hechas} / ${totalLecciones}`;
+
+      const progCard = document.querySelector('header .card');
+      if (progCard) {
+        if (totalLecciones > 0 && hechas >= totalLecciones) {
+          progCard.classList.add('border-completed');
+        } else {
+          progCard.classList.remove('border-completed');
+        }
+      }
     }
 
     function handleToggle(e: Event) {

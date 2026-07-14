@@ -1,32 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #f8fafc;
-  --color-text: #1e293b;
-  --color-heading: #0f172a;
-  --color-muted: #64748b;
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-secondary: #ec4899;
-  --color-card: #ffffff;
-  --color-border: #e2e8f0;
-  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --color-bg: hsla(210, 60%, 98%, 1);          /* slate-50 */
+  --color-text: hsla(217, 33%, 17%, 1);        /* slate-800 */
+  --color-heading: hsla(222, 47%, 11%, 1);     /* slate-900 */
+  --color-muted: hsla(215, 16%, 47%, 1);       /* slate-500 */
+  --color-primary: hsla(243, 75%, 59%, 1);     /* indigo-600 */
+  --color-primary-hover: hsla(244, 55%, 41%, 1); /* indigo-700 */
+  --color-secondary: hsla(330, 81%, 60%, 1);   /* pink-500 */
+  --color-success: hsla(142, 76%, 36%, 1);     /* green-600 */
+  --color-success-shadow: hsla(142, 76%, 36%, 0.15);
+  --color-success-bg: hsla(142, 76%, 36%, 0.05);
+  --color-warning: hsla(35, 92%, 44%, 1);      /* amber-600 */
+  --color-error: hsla(0, 72%, 51%, 1);        /* red-600 */
+  --color-card: hsla(0, 0%, 100%, 1);          /* white */
+  --color-border: hsla(214, 32%, 91%, 1);      /* slate-200 */
+  --bg-gradient: linear-gradient(135deg, hsla(210, 60%, 98%, 1) 0%, hsla(214, 32%, 91%, 1) 100%);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 html.dark {
-  --color-bg: #212836;
-  --color-text: #e2e8f0;
-  --color-heading: #ffffff;
-  --color-muted: #94a3b8;
-  --color-primary: #a5b4fc;
-  --color-primary-hover: #818cf8;
-  --color-secondary: #f472b6;
-  --color-card: #2c3444;
-  --color-border: #3d4659;
-  --bg-gradient: linear-gradient(135deg, #2a3447 0%, #1a202c 100%);
+  --color-bg: hsla(222, 47%, 11%, 1);          /* slate-900 */
+  --color-text: hsla(214, 32%, 91%, 1);        /* slate-200 */
+  --color-heading: hsla(210, 60%, 98%, 1);     /* slate-50 */
+  --color-muted: hsla(215, 20%, 65%, 1);       /* slate-400 */
+  --color-primary: hsla(234, 89%, 74%, 1);     /* indigo-400 */
+  --color-primary-hover: hsla(239, 84%, 67%, 1); /* indigo-500 */
+  --color-secondary: hsla(329, 86%, 70%, 1);   /* pink-400 */
+  --color-success: hsla(142, 72%, 45%, 1);     /* green-500 */
+  --color-success-shadow: hsla(142, 72%, 45%, 0.3);
+  --color-success-bg: hsla(142, 72%, 45%, 0.08);
+  --color-warning: hsla(43, 96%, 56%, 1);      /* amber-400 */
+  --color-error: hsla(0, 84%, 60%, 1);        /* red-500 */
+  --color-card: hsla(217, 33%, 17%, 1);        /* slate-800 */
+  --color-border: hsla(215, 25%, 27%, 1);      /* slate-700 */
+  --bg-gradient: linear-gradient(135deg, hsla(217, 33%, 17%, 1) 0%, hsla(222, 47%, 11%, 1) 100%);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
@@ -57,7 +67,7 @@ body {
 
 ::selection {
   background-color: var(--color-primary);
-  color: #ffffff;
+  color: hsla(0, 0%, 100%, 1);
 }
 
 /* ========================================
@@ -67,6 +77,36 @@ body {
 .card {
   @apply bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5
          transition-all duration-300;
+}
+
+.border-completed {
+  border-color: var(--color-success) !important;
+  box-shadow: 0 4px 20px -2px var(--color-success-shadow) !important;
+}
+
+.text-success {
+  color: var(--color-success) !important;
+}
+
+.text-warning {
+  color: var(--color-warning) !important;
+}
+
+.text-error {
+  color: var(--color-error) !important;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--color-success) !important;
+}
+
+.leccion-item {
+  transition: all 0.3s ease;
+}
+
+.leccion-item:has(input[type="checkbox"]:checked) {
+  border-color: var(--color-success) !important;
+  background-color: var(--color-success-bg) !important;
 }
 
 .card-hover {
