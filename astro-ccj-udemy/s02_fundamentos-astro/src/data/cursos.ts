@@ -45,7 +45,7 @@ export const cursos: Curso[] = [
           { id: "02-01", titulo: "Estructura de un proyecto Astro" },
           { id: "02-02", titulo: "Componentes Astro (.astro)" },
           { id: "02-03", titulo: "Páginas y rutas estáticas" },
-          { id: "02-04", titulo: "Estilos con Tailwind CSS", completed: true },
+          { id: "02-04", titulo: "Estilos con Tailwind CSS" },
           { id: "02-05", titulo: "Dark Mode y Theme Switcher" },
           { id: "02-06", titulo: "Layouts y slots" },
           { id: "02-07", titulo: "Curso Tracker con checkboxes" },
@@ -153,15 +153,3 @@ export const cursos: Curso[] = [
     ],
   },
 ];
-
-export function getSeccionPorSlug(
-  cursoSlug: string,
-  seccionSlug: string
-): Seccion | undefined {
-  const curso = cursos.find((c) => c.slug === cursoSlug);
-  return curso?.secciones.find((s) => s.slug === seccionSlug);
-}
-
-export function getCursoPorSlug(slug: string): Curso | undefined {
-  return cursos.find((c) => c.slug === slug);
-}

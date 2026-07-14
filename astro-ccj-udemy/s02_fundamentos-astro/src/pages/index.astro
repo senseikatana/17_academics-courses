@@ -1,0 +1,176 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { cursos } from '../data/cursos';
+
+const curso = cursos[0];
+const totalSecciones = curso.secciones.length;
+---
+
+<BaseLayout title={`${curso.titulo} — ${curso.instructor}`}>
+  <main class="min-h-screen px-4 sm:px-6 lg:px-8 py-12" transition:animate="fade">
+    <div class="max-w-5xl mx-auto">
+      <!-- Cabecera del curso -->
+      <header class="mb-10">
+        <div class="flex items-center gap-4">
+          <div
+            class="flex items-center justify-center w-12 h-12 rounded-2xl
+                   bg-[var(--color-primary)]/10 text-[var(--color-primary)] shrink-0"
+          >
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--color-heading)] leading-tight">
+              {curso.titulo}
+            </h1>
+            <p class="text-sm text-[var(--color-muted)] mt-0.5">
+              {curso.instructor} · {totalSecciones} secciones
+            </p>
+          </div>
+        </div>
+
+        <!-- Progreso global del curso -->
+        <div class="card mt-6">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-medium text-[var(--color-muted)]">Progreso total del curso</span>
+            <span id="progreso-global-texto" class="text-xs font-medium text-[var(--color-primary)]">
+              0 / {totalSecciones}
+            </span>
+          </div>
+          <div class="w-full h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
+            <div
+              id="progreso-global-barra"
+              class="h-full bg-[var(--color-primary)] rounded-full transition-all duration-700"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Bento Grid: tarjetas de secciones -->
+      <div class="bento-grid" id="bento-secciones">
+        {curso.secciones.map((seccion, i) => (
+          <a
+            href={`/secciones/${seccion.slug}`}
+            class="card card-hover group cursor-pointer no-underline block"
+            data-seccion-id={seccion.id}
+            data-slug={seccion.slug}
+          >
+            <div class="flex items-start gap-4">
+              <div class="badge">{String(i + 1).padStart(2, '0')}</div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-[var(--color-heading)] group-hover:text-[var(--color-primary)] transition-colors">
+                  {seccion.titulo}
+                </h3>
+                <p class="text-xs text-[var(--color-muted)] mt-1">
+                  {seccion.lecciones.length} lecciones
+                </p>
+                <!-- Barra de progreso individual -->
+                <div class="mt-3" data-progreso-seccion>
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-[10px] font-medium text-[var(--color-muted)]">Progreso</span>
+                    <span class="text-[10px] font-medium text-[var(--color-primary)]" data-progreso-texto>0%</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-[var(--color-border)] rounded-full overflow-hidden">
+                    <div
+                      class="h-full bg-[var(--color-primary)] rounded-full transition-all duration-500"
+                      data-progreso-barra
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  (function () {
+    // Recalcular progreso para cada sección y el progreso global
+    function recalcAll() {
+      const secciones = document.querySelectorAll('[data-seccion-id]');
+      let completadas = 0;
+      const total = secciones.length;
+
+      secciones.forEach(function (el) {
+        const slug = el.dataset.slug;
+        const storageKey = 'progreso-astro-wordpress-' + slug;
+        var ids;
+        try {
+          ids = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        } catch {
+          ids = [];
+        }
+
+        const leccionesEnSlug = el.querySelector('[data-progreso-seccion]');
+        if (leccionesEnSlug) {
+          // Necesitamos saber el total de lecciones de esta sección
+          // Lo inferimos del texto "N lecciones" en el párrafo
+          const p = el.querySelector('p.text-xs');
+          var totalLecciones = 0;
+          if (p) {
+            var match = p.textContent.match(/(\d+)\s*lecciones/);
+            if (match) totalLecciones = parseInt(match[1], 10);
+          }
+
+          const hechas = ids.length;
+          const pct = totalLecciones > 0 ? Math.round((hechas / totalLecciones) * 100) : 0;
+
+          const barra = el.querySelector('[data-progreso-barra]');
+          const texto = el.querySelector('[data-progreso-texto]');
+          if (barra) barra.style.width = pct + '%';
+          if (texto) texto.textContent = pct + '%';
+
+          // Una lección hecha = todas hechas? No, consideramos completada si al menos 1 checkbox hecho
+          // Mejor: consideramos completada si TODAS las lecciones están hechas.
+          if (hechas > 0 && hechas >= totalLecciones) completadas++;
+          // También contamos si no tiene lecciones
+          if (totalLecciones === 0 && ids.length >= 0) {
+            // skip, no cuenta
+          }
+        }
+      });
+
+      // Progreso global
+      const barraGlobal = document.getElementById('progreso-global-barra');
+      const textoGlobal = document.getElementById('progreso-global-texto');
+      if (barraGlobal && textoGlobal) {
+        // Mejor contar las secciones donde todas las lecciones están completas
+        // Re-hacemos el cálculo más preciso
+        completadas = 0;
+        secciones.forEach(function (el) {
+          const slug = el.dataset.slug;
+          const storageKey = 'progreso-astro-wordpress-' + slug;
+          var ids;
+          try {
+            ids = JSON.parse(localStorage.getItem(storageKey) || '[]');
+          } catch { ids = []; }
+          const p = el.querySelector('p.text-xs');
+          var totalLecciones = 0;
+          if (p) {
+            var match = p.textContent.match(/(\d+)\s*lecciones/);
+            if (match) totalLecciones = parseInt(match[1], 10);
+          }
+          if (totalLecciones > 0 && ids.length >= totalLecciones) completadas++;
+        });
+
+        const pctGlobal = total > 0 ? Math.round((completadas / total) * 100) : 0;
+        barraGlobal.style.width = pctGlobal + '%';
+        textoGlobal.textContent = completadas + ' / ' + total;
+      }
+    }
+
+    recalcAll();
+
+    // Recalcular cuando cambie localStorage (desde otra pestaña o desde la página de sección)
+    window.addEventListener('storage', recalcAll);
+
+    // También escuchar un evento custom para recálculo inmediato desde la misma pestaña
+    window.addEventListener('progreso-update', recalcAll);
+  })();
+</script>

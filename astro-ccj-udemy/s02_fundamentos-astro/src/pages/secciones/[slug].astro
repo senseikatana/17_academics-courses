@@ -1,6 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { cursos, getSeccionPorSlug } from '../../data/cursos';
+import { cursos } from '../../data/cursos';
+
+function getSeccionPorSlug(slug: string) {
+  const curso = cursos[0];
+  return curso.secciones.find((s) => s.slug === slug) ?? null;
+}
 
 export function getStaticPaths() {
   const curso = cursos[0];
@@ -57,7 +62,7 @@ const seccionSiguiente =
         </p>
 
         <!-- Barra de progreso de la sección -->
-        <div class="mt-4 bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-4">
+        <div class="card mt-4">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-xs font-medium text-[var(--color-muted)]">Progreso</span>
             <span id="progreso-seccion-texto" class="text-xs font-medium text-[var(--color-primary)]">
@@ -78,8 +83,7 @@ const seccionSiguiente =
       <ul class="space-y-2" id="lista-lecciones">
         {seccion.lecciones.map((leccion) => (
           <li
-            class="flex items-center gap-3 bg-[var(--color-card)] border border-[var(--color-border)]
-                   rounded-xl px-4 py-3.5 transition-all duration-300 leccion-item"
+            class="card leccion-item flex items-center gap-3"
             data-leccion-id={leccion.id}
           >
             <input
@@ -197,6 +201,9 @@ const seccionSiguiente =
 
       saveCompleted(completed);
       actualizarProgreso();
+
+      // Notificar al dashboard (incluso en la misma pestaña con View Transitions)
+      window.dispatchEvent(new CustomEvent('progreso-update'));
 
       // Animación sutil en el item
       const item = cb.closest('.leccion-item');
