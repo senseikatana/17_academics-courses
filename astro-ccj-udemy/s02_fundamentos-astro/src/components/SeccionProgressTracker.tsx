@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useCourseStore } from '../store';
 
 interface LeccionData {
   id: string;
@@ -12,37 +13,25 @@ interface Props {
 }
 
 export default function SeccionProgressTracker({ seccionSlug, lecciones, initialCompleted }: Props) {
-  const [completed, setCompleted] = useState<string[]>(initialCompleted);
-  const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const initializeSection = useCourseStore((state) => state.initializeSection);
+  const completed = useCourseStore((state) => state.completedLessons[seccionSlug] ?? []);
+  const updatingLessons = useCourseStore((state) => state.updatingLessons);
+  const toggleLesson = useCourseStore((state) => state.toggleLesson);
+
+  // Inicializar el estado de la sección con los datos del servidor al montar la isla
+  useEffect(() => {
+    initializeSection(seccionSlug, initialCompleted);
+  }, [seccionSlug, initialCompleted, initializeSection]);
 
   const total = lecciones.length;
-  const hechas = completed.length;
+  // Usar el estado de Zustand; si no ha cargado aún, usar los datos SSR iniciales
+  const listCompletadas = useCourseStore.getState().completedLessons[seccionSlug] !== undefined
+    ? completed
+    : initialCompleted;
+
+  const hechas = listCompletadas.length;
   const pct = total > 0 ? Math.round((hechas / total) * 100) : 0;
   const isAllCompleted = total > 0 && hechas >= total;
-
-  const handleToggle = async (id: string, checked: boolean) => {
-    setIsUpdating(id);
-    try {
-      const res = await fetch('/api/progreso', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seccionSlug, leccionId: id, completada: checked })
-      });
-      if (res.ok) {
-        if (checked) {
-          setCompleted((prev) => [...prev, id]);
-          window.dispatchEvent(new CustomEvent('progreso-update'));
-        } else {
-          setCompleted((prev) => prev.filter((item) => item !== id));
-          window.dispatchEvent(new CustomEvent('progreso-update'));
-        }
-      }
-    } catch (err) {
-      console.error('Error al guardar el progreso:', err);
-    } finally {
-      setIsUpdating(null);
-    }
-  };
 
   return (
     <div>
@@ -73,7 +62,9 @@ export default function SeccionProgressTracker({ seccionSlug, lecciones, initial
       {/* Lista de lecciones */}
       <ul className="space-y-2 mt-8" id="lista-lecciones">
         {lecciones.map((leccion) => {
-          const isChecked = completed.includes(leccion.id);
+          const isChecked = listCompletadas.includes(leccion.id);
+          const isUpdating = !!updatingLessons[leccion.id];
+
           return (
             <li
               key={leccion.id}
@@ -83,8 +74,8 @@ export default function SeccionProgressTracker({ seccionSlug, lecciones, initial
                 type="checkbox"
                 id={`chk-${leccion.id}`}
                 checked={isChecked}
-                disabled={isUpdating === leccion.id}
-                onChange={(e) => handleToggle(leccion.id, e.target.checked)}
+                disabled={isUpdating}
+                onChange={(e) => toggleLesson(seccionSlug, leccion.id, e.target.checked)}
                 className="w-5 h-5 rounded border-[var(--color-border)] text-[var(--color-success)]
                           focus:ring-[var(--color-success)] cursor-pointer
                           accent-[var(--color-success)] transition-transform duration-200 hover:scale-110"

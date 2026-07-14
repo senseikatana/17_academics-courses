@@ -59,6 +59,9 @@ Este proyecto corresponde a la **Sección 02: Fundamentos de Astro** del curso d
 │   │   ├── index.astro      # Cuadro de mandos principal (Bento Grid)
 │   │   └── secciones/
 │   │       └── [slug].astro # Vista detallada de lecciones de la sección
+│   ├── store/               # Gestión de estado global con Zustand
+│   │   ├── index.ts         # Barrel de stores
+│   │   └── useCourseStore.ts # Store global de progreso
 │   ├── styles/              # Hojas de estilo globales
 │   │   └── global.css
 │   └── types/               # Tipados TypeScript
@@ -108,6 +111,11 @@ A continuación se detallan las tareas, mejoras y correcciones aplicadas al proy
    - Desarrollo del endpoint API `/api/progreso` para registrar y revertir el estado de completado en la tabla SQLite de Astro DB.
    - Configuración de compilación transparente (zero-config) en `astro.config.mjs` que establece automáticamente `process.env.ASTRO_DATABASE_FILE = 'local.db'` para builds locales en producción sin necesidad de especificar variables de entorno de forma manual.
    - Migración definitiva de dependencias de `bun` a **pnpm**.
+
+8. **📦 Gestión de Estado Global con Zustand**
+   - Instalación de la librería `zustand`.
+   - Creación del store centralizado `useCourseStore.ts` para manejar de forma unificada el estado del progreso de lecciones, estados de guardado en el servidor y sincronización dinámica.
+   - Refactorización de la isla de React `SeccionProgressTracker.tsx` para consumir el store de Zustand de manera reactiva, reduciendo la lógica inline en componentes e implementando estados de carga dinámicos al actualizar elementos.
 
 ---
 

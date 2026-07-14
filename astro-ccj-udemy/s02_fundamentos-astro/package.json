@@ -21,7 +21,8 @@
     "i": "^0.3.7",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
