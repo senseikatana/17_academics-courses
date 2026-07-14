@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import type { Curso, Seccion, Leccion } from '../../types';
 
 export async function getStaticPaths() {
-  const secciones = await getCollection('secciones');
+  const secciones: Seccion[] = await getCollection('secciones');
   return secciones.map((seccion) => ({
     params: { slug: seccion.data.slug },
     props: { slug: seccion.data.slug },
@@ -11,14 +12,14 @@ export async function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
-const secciones = await getCollection('secciones');
+const secciones: Seccion[] = await getCollection('secciones');
 secciones.sort((a, b) => a.data.orden - b.data.orden);
 const seccion = secciones.find((s) => s.data.slug === slug);
 if (!seccion) {
   return Astro.redirect('/404');
 }
 
-const lecciones = (await getCollection('lecciones'))
+const lecciones: Leccion[] = (await getCollection('lecciones'))
   .filter((l) => l.data.seccionId === seccion.data.id)
   .sort((a, b) => a.data.orden - b.data.orden);
 
@@ -26,7 +27,7 @@ const idx = secciones.findIndex((s) => s.data.id === seccion.data.id);
 const seccionAnterior = idx > 0 ? secciones[idx - 1] : null;
 const seccionSiguiente = idx < secciones.length - 1 ? secciones[idx + 1] : null;
 
-const [curso] = await getCollection('curso');
+const [curso]: Curso[] = await getCollection('curso');
 ---
 
 <BaseLayout title={`${seccion.data.id}. ${seccion.data.titulo} — ${curso.data.titulo}`}>

@@ -1,30 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #ffffff;
+  --color-bg: #f8fafc;
   --color-text: #1e293b;
   --color-heading: #0f172a;
   --color-muted: #64748b;
   --color-primary: #6366f1;
   --color-primary-hover: #4f46e5;
   --color-secondary: #ec4899;
-  --color-card: #f8fafc;
+  --color-card: #ffffff;
   --color-border: #e2e8f0;
+  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 html.dark {
-  --color-bg: #0f172a;
+  --color-bg: #212836;
   --color-text: #e2e8f0;
-  --color-heading: #f1f5f9;
+  --color-heading: #ffffff;
   --color-muted: #94a3b8;
-  --color-primary: #818cf8;
-  --color-primary-hover: #6366f1;
+  --color-primary: #a5b4fc;
+  --color-primary-hover: #818cf8;
   --color-secondary: #f472b6;
-  --color-card: #1e293b;
-  --color-border: #334155;
+  --color-card: #2c3444;
+  --color-border: #3d4659;
+  --bg-gradient: linear-gradient(135deg, #2a3447 0%, #1a202c 100%);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
@@ -40,10 +42,14 @@ html, body {
   html, body { transition: none; }
 }
 
-html { background-color: var(--color-bg); }
+html {
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+  background-color: var(--color-bg);
+}
 
 body {
-  background-color: var(--color-bg);
+  background-color: transparent;
   color: var(--color-text);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;

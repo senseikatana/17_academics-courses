@@ -1,11 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import type { Curso, Seccion, Leccion } from '../types';
 
-const [curso] = await getCollection('curso');
-const secciones = await getCollection('secciones');
+const [curso]: Curso[] = await getCollection('curso');
+const secciones: Seccion[] = await getCollection('secciones');
 secciones.sort((a, b) => a.data.orden - b.data.orden);
-const lecciones = await getCollection('lecciones');
+const lecciones: Leccion[] = await getCollection('lecciones');
 const leccionesPorSeccion = new Map<string, number>();
 for (const l of lecciones) {
   leccionesPorSeccion.set(l.data.seccionId, (leccionesPorSeccion.get(l.data.seccionId) ?? 0) + 1);

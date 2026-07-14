@@ -2,11 +2,9 @@
 import '../styles/global.css';
 import ThemeSwitcher from '../components/ThemeSwitcher.astro';
 import { ClientRouter } from 'astro:transitions';
+import type { LayoutProps } from '../types';
 
-export interface Props {
-  title?: string;
-  description?: string;
-}
+export interface Props extends LayoutProps {}
 
 const { title = 'Aprende Astro y Headless WordPress — Curso completo', description = 'Demo Description' } = Astro.props;
 ---
