@@ -6,6 +6,11 @@ import db from '@astrojs/db';
 
 import react from '@astrojs/react';
 
+// Define database file fallback for local production builds
+if (!process.env.ASTRO_DATABASE_FILE && !process.env.ASTRO_DB_REMOTE_URL) {
+  process.env.ASTRO_DATABASE_FILE = 'local.db';
+}
+
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
