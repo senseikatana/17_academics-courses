@@ -1,6 +1,6 @@
-# 🎓 Course Progress Tracker — Astro & Headless WordPress
+# 🎓 Sección 02: Fundamentos de Astro
 
-Este es un **rastreador de progreso del curso** diseñado para el curso de Udemy *"Aprende Astro y Headless WordPress desde Cero con Proyectos"*. El proyecto sirve para registrar y persistir las lecciones completadas, calculando automáticamente el progreso individual por sección y el avance global del curso.
+Este proyecto corresponde a la **Sección 02: Fundamentos de Astro** del curso de Udemy *"Aprende Astro y Headless WordPress desde Cero con Proyectos"*. Sirve para registrar y persistir las lecciones completadas, calculando automáticamente el progreso individual de la sección y el avance global del curso.
 
 ---
 
@@ -80,12 +80,24 @@ Todos los comandos se ejecutan desde la raíz del proyecto usando `bun`:
 
 ---
 
-## 📝 Registro de Lecciones
+## 📝 Contenido de las Secciones y Lecciones
 
-El contenido de las secciones se está poblando dinámicamente. Actualmente, se han completado los datos exactos del plan de estudios para:
-- **Sección 1**: Introducción.
-- **Sección 2**: Fundamentos de Astro.
-- **Sección 3**: Componentes y Templates.
-- **Sección 4**: Routing y Navegación.
+A continuación se detallan los enlaces a los archivos físicos de cada sección y lección registrados en el proyecto:
 
-El resto de secciones se irán poblando conforme avances en su estudio.
+### 📦 [Sección 01: Introducción](src/content/secciones/01_introduccion.md)
+- [Lección 1: ¿Qué es Astro?](src/content/lecciones/01-01_que-es-astro.md)
+- [Lección 2: Headless WordPress](src/content/lecciones/01-02_headless-wordpress.md)
+- [Lección 3: Requisitos de Instalación](src/content/lecciones/01-03_requisitos-instalacion.md)
+- [Lección 4: Primer Proyecto](src/content/lecciones/01-04_primer-proyecto.md)
+
+### 📦 [Sección 02: Fundamentos de Astro](src/content/secciones/02_fundamentos.md)
+- [Lección 3: ¿Qué es Astro?](src/content/lecciones/02-03_que-es-astro.md)
+- [Lección 4: Creando Nuestro Proyecto (Windows)](src/content/lecciones/02-04_creando-proyecto-windows.md)
+- [Lección 5: Creando Nuestro Proyecto (Mac)](src/content/lecciones/02-05_creando-proyecto-mac.md)
+- [Lección 6: El Frontmatter de Astro y pasar variables hacia el HTML](src/content/lecciones/02-06_frontmatter-astro-variables.md)
+- [Lección 7: Pages o Páginas en Astro y routing](src/content/lecciones/02-07_pages-paginas-routing.md)
+- [Lección 8: Añadiendo Tailwind al Proyecto](src/content/lecciones/02-08_anadiendo-tailwind.md)
+- [Lección 9: Layouts en Astro](src/content/lecciones/02-09_layouts-astro.md)
+- [Lección 10: Componentes en Astro](src/content/lecciones/02-10_componentes-astro.md)
+- [Lección 11: Props en Componentes](src/content/lecciones/02-11_props-componentes.md)
+- [Lección 12: Añadiendo Interfaces a Props para mejor DX](src/content/lecciones/02-12_anadiendo-interfaces-props-dx.md)
