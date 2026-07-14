@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useCourseStore } from '../store';
 
 interface LeccionData {
@@ -13,8 +13,11 @@ interface Props {
 }
 
 export default function SeccionProgressTracker({ seccionSlug, lecciones, initialCompleted }: Props) {
+  const [hasHydrated, setHasHydrated] = useState(false);
+
   const syncSectionProgress = useCourseStore((state) => state.syncSectionProgress);
-  const completed = useCourseStore((state) => state.completedLessons[seccionSlug] ?? []);
+  // Evitar retornar un literal de array [] por defecto en el selector para impedir warnings de getServerSnapshot en SSR
+  const completed = useCourseStore((state) => state.completedLessons[seccionSlug]);
   const updatingLessons = useCourseStore((state) => state.updatingLessons);
   const toggleLesson = useCourseStore((state) => state.toggleLesson);
 
@@ -23,9 +26,14 @@ export default function SeccionProgressTracker({ seccionSlug, lecciones, initial
     syncSectionProgress(seccionSlug, initialCompleted);
   }, [seccionSlug, initialCompleted, syncSectionProgress]);
 
+  // Marcar hidratación en el cliente para evitar discrepancias HTML de SSR
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
   const total = lecciones.length;
-  // Usar el estado de Zustand; si no ha cargado aún, usar los datos SSR iniciales
-  const listCompletadas = useCourseStore.getState().completedLessons[seccionSlug] !== undefined
+  // Usar el estado persistido de Zustand solo después de la hidratación del cliente
+  const listCompletadas = hasHydrated && completed !== undefined
     ? completed
     : initialCompleted;
 
