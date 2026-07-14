@@ -1,0 +1,36 @@
+---
+import '../styles/global.css';
+import ThemeSwitcher from '../components/ThemeSwitcher.astro';
+import { ClientRouter } from 'astro:transitions';
+
+export interface Props {
+  title?: string;
+}
+
+const { title = 'Aprende Astro y Headless WordPress — Curso completo' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <!-- FOUC prevention: apply stored theme before first paint -->
+    <script is:inline>
+      (function () {
+        var theme = localStorage.getItem('theme-preference') || 'light';
+        document.documentElement.classList.add(theme);
+      })();
+    </script>
+    <ClientRouter />
+    <slot name="head" />
+  </head>
+  <body>
+    <slot />
+    <ThemeSwitcher />
+  </body>
+</html>
