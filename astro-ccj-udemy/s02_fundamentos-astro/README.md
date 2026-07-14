@@ -13,53 +13,58 @@ Este proyecto corresponde a la **Sección 02: Fundamentos de Astro** del curso d
    - Compatibilidad total con la navegación por transiciones del cliente de Astro (`astro:page-load`).
    - Atajo de teclado global: cambia el tema presionando `Ctrl + L`.
 
-2. **📊 Rastreo de Lecciones y Progreso**
-   - Selección dinámica de lecciones leídas mediante checkboxes.
-   - Cálculo en tiempo real del progreso porcentual de cada sección.
-   - Cálculo en tiempo real del porcentaje global completado del curso.
-   - Persistencia instantánea del estado de las lecciones en `localStorage` (llaves formateadas por sección, ej: `progreso-astro-wordpress-02_fundamentos`).
-   - Reactivo a múltiples pestañas gracias a la escucha activa del evento `storage`.
+2. **📊 Rastreo de Lecciones y Progreso con Astro DB y SSR**
+   - Persistencia robusta en el servidor mediante **Astro DB** con base de datos SQLite local para desarrollo y soporte de libSQL.
+   - Sincronización en tiempo real a través de endpoints de API dinámica (`/api/progreso`).
+   - Reactividad inmediata implementada en el cliente con **React** bajo el modelo de **Astro Islands (Isla de Astro)** hidratada (`SeccionProgressTracker.tsx`).
+   - Renderizado del lado del servidor (**SSR**) con el adaptador `@astrojs/node` que asegura que el HTML inicial ya contenga las tarjetas pintadas y el progreso real.
 
 3. **🎨 Estética y Diseño Moderno**
-   - **Fondos con degradados premium**:
-     - *Modo Oscuro*: Degradado índigo-pizarra profundo y moderno (`linear-gradient(135deg, #2a3447 0%, #1a202c 100%)`).
-     - *Modo Claro*: Degradado gris suave (`linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)`).
+   - **Paletas Nativas de Tailwind CSS**: Mapeo completo en `global.css` usando tonalidades Slate, Indigo, Pink, Green (éxito), Amber (advertencia) y Red (error).
    - **Bento Grid**: Tarjetas limpias de color sólido (`bg-[var(--color-card)]`) con bordes sutiles y sombreados suaves que optimizan la lectura y jerarquía.
-   - Animaciones micro-interactivas en el hover de las tarjetas y al marcar lecciones completadas.
+   - **Estado Completado Enriquecido**: Cuando una sección o lección se completa, toda la tarjeta (bordes de 2px, títulos, textos y barras de progreso) adopta colores verdes integrados con el cambio de tema para evitar destellos y Layout Shift.
 
 4. **⚙️ Estructura del Código y TypeScript**
    - **Content Collections**: Gestión de datos de `curso`, `secciones` y `lecciones` a través del sistema de colecciones estáticas de Astro con validaciones de esquema con Zod ([src/content.config.ts](file:///home/senseikatana/Proyectos/17_academics-courses/astro-ccj-udemy/s02_fundamentos-astro/src/content.config.ts)).
    - **Carpeta de Tipos Unificada**: Todo el tipado estricto se encuentra bajo la carpeta `src/types/` ([course.ts](file:///home/senseikatana/Proyectos/17_academics-courses/astro-ccj-udemy/s02_fundamentos-astro/src/types/course.ts) y [layout.ts](file:///home/senseikatana/Proyectos/17_academics-courses/astro-ccj-udemy/s02_fundamentos-astro/src/types/layout.ts)).
    - **Patrón Barrel (Archivos index.ts)**: Se implementó exportación barrel en todos los directorios principales (`components`, `layouts`, `data`, `types`) para simplificar y limpiar las importaciones del proyecto. Se excluye la carpeta `pages` para evitar conflictos en el enrutamiento físico de Astro y `content` para no interferir con las colecciones.
+   - **Gestor de Paquetes**: Uso de **pnpm** para un manejo rápido y eficiente de las dependencias.
 
 ---
 
 ## 📂 Estructura del Proyecto
 
 ```text
-src/
-├── components/          # Componentes de UI
-│   ├── index.ts         # Barrel de componentes
-│   └── ThemeSwitcher.astro
-├── content/             # Datos del curso (Markdown)
-│   ├── curso/
-│   ├── lecciones/       # Lecciones (Secciones 1 a 11)
-│   └── secciones/       # Metadatos de Secciones
-├── data/                # Datos auxiliares
-│   └── index.ts         # Barrel de datos
-├── layouts/             # Plantillas base de página
-│   ├── index.ts         # Barrel de layouts
-│   └── BaseLayout.astro
-├── pages/               # Páginas y enrutamiento (Excluidos de Barrel)
-│   ├── index.astro      # Cuadro de mandos principal (Bento Grid)
-│   └── secciones/
-│       └── [slug].astro # Vista detallada de lecciones de la sección
-├── styles/              # Hojas de estilo globales
-│   └── global.css
-└── types/               # Tipados TypeScript
-    ├── index.ts         # Barrel de tipos
-    ├── course.ts        # Tipos de contenido (Curso, Sección, Lección)
-    └── layout.ts        # Tipos de layout props
+├── db/                  # Configuración y semillado de Astro DB
+│   ├── config.ts        # Definición de tablas (ProgresoLeccion)
+│   └── seed.ts          # Semillado de progreso del estudiante
+├── src/
+│   ├── components/          # Componentes de UI
+│   │   ├── index.ts         # Barrel de componentes
+│   │   ├── ThemeSwitcher.astro
+│   │   └── SeccionProgressTracker.tsx # React Island para interactividad
+│   ├── content/             # Datos del curso (Markdown)
+│   │   ├── curso/
+│   │   ├── lecciones/       # Lecciones (Secciones 1 y 2)
+│   │   └── secciones/       # Metadatos de Secciones
+│   ├── data/                # Datos auxiliares
+│   │   └── index.ts         # Barrel de datos
+│   ├── layouts/             # Plantillas base de página
+│   │   ├── index.ts         # Barrel de layouts
+│   │   └── BaseLayout.astro
+│   ├── pages/               # Páginas y enrutamiento (Excluidos de Barrel)
+│   │   ├── api/
+│   │   │   ├── crear.ts     # API local para crear archivos Markdown
+│   │   │   └── progreso.ts  # API local para registrar progreso en Astro DB
+│   │   ├── index.astro      # Cuadro de mandos principal (Bento Grid)
+│   │   └── secciones/
+│   │       └── [slug].astro # Vista detallada de lecciones de la sección
+│   ├── styles/              # Hojas de estilo globales
+│   │   └── global.css
+│   └── types/               # Tipados TypeScript
+│       ├── index.ts         # Barrel de tipos
+│       ├── course.ts        # Tipos de contenido (Curso, Sección, Lección)
+│       └── layout.ts        # Tipos de layout props
 ```
 ## 🛠️ Historial de Tareas y Cambios Realizados
 
@@ -97,21 +102,28 @@ A continuación se detallan las tareas, mejoras y correcciones aplicadas al proy
    - Añadidos enlaces directos relativos en este README.md para acceder y editar rápidamente los archivos locales del plan de estudios.
    - Limpieza de ramas en git (worktree removido y rama local de desarrollo `opencode/lucky-river` borrada).
 
+7. **🗄️ Migración a Astro DB, React Island y SSR (Servidor Híbrido/Dinámico)**
+   - Migración completa de persistencia desde `localStorage` en cliente hacia **Astro DB** en servidor.
+   - Integración de **React** y creación de la isla hidratada `SeccionProgressTracker.tsx` que maneja el listado de lecciones y la barra de progreso de forma interactiva y sin Layout Shifts.
+   - Desarrollo del endpoint API `/api/progreso` para registrar y revertir el estado de completado en la tabla SQLite de Astro DB.
+   - Configuración de compilación transparente (zero-config) en `astro.config.mjs` que establece automáticamente `process.env.ASTRO_DATABASE_FILE = 'local.db'` para builds locales en producción sin necesidad de especificar variables de entorno de forma manual.
+   - Migración definitiva de dependencias de `bun` a **pnpm**.
+
 ---
 
 ## 🧞 Comandos de Desarrollo
 
-Todos los comandos se ejecutan desde la raíz del proyecto usando `bun`:
+Todos los comandos se ejecutan desde la raíz del proyecto usando `pnpm`:
 
 | Comando | Acción |
 | :--- | :--- |
-| `bun install` | Instala las dependencias necesarias. |
-| `bun dev` | Inicia el servidor de desarrollo local en `localhost:4321`. |
-| `astro dev --background` | Arranca el servidor de desarrollo de Astro en segundo plano. |
-| `astro dev stop` | Detiene el servidor de desarrollo en segundo plano. |
-| `astro dev status` | Verifica el estado del servidor en segundo plano. |
-| `bun build` | Compila la web estática de producción en la carpeta `./dist/`. |
-| `bun preview` | Previsualiza localmente el build de producción generado. |
+| `pnpm install` | Instala las dependencias necesarias. |
+| `pnpm run dev` | Inicia el servidor de desarrollo local en `localhost:4321`. |
+| `pnpm exec astro dev --background` | Arranca el servidor de desarrollo de Astro en segundo plano. |
+| `pnpm exec astro dev stop` | Detiene el servidor de desarrollo en segundo plano. |
+| `pnpm exec astro dev status` | Verifica el estado del servidor en segundo plano. |
+| `pnpm run build` | Compila el servidor de producción de Astro en la carpeta `./dist/` usando la DB local. |
+| `pnpm run preview` | Previsualiza localmente el build de producción generado. |
 
 ---
 
