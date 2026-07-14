@@ -13,15 +13,15 @@ interface Props {
 }
 
 export default function SeccionProgressTracker({ seccionSlug, lecciones, initialCompleted }: Props) {
-  const initializeSection = useCourseStore((state) => state.initializeSection);
+  const syncSectionProgress = useCourseStore((state) => state.syncSectionProgress);
   const completed = useCourseStore((state) => state.completedLessons[seccionSlug] ?? []);
   const updatingLessons = useCourseStore((state) => state.updatingLessons);
   const toggleLesson = useCourseStore((state) => state.toggleLesson);
 
-  // Inicializar el estado de la sección con los datos del servidor al montar la isla
+  // Sincronizar el progreso de la sección con los datos del servidor al montar la isla
   useEffect(() => {
-    initializeSection(seccionSlug, initialCompleted);
-  }, [seccionSlug, initialCompleted, initializeSection]);
+    syncSectionProgress(seccionSlug, initialCompleted);
+  }, [seccionSlug, initialCompleted, syncSectionProgress]);
 
   const total = lecciones.length;
   // Usar el estado de Zustand; si no ha cargado aún, usar los datos SSR iniciales
