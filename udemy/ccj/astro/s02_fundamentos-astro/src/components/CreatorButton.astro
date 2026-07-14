@@ -1,0 +1,364 @@
+---
+import { db, Seccion, eq } from 'astro:db';
+
+const cursoId = 'astro-ccj-udemy';
+const dbSecciones = await db.select().from(Seccion).where(eq(Seccion.cursoId, cursoId));
+dbSecciones.sort((a, b) => a.orden - b.orden);
+const secciones = dbSecciones.map((s) => ({
+  data: {
+    id: s.id.replace(`${cursoId}-`, ''),
+    titulo: s.titulo,
+    slug: s.slug,
+    orden: s.orden
+  }
+}));
+---
+
+<!-- Botón Flotante "+" -->
+<button
+  id="creator-fab"
+  class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[var(--color-primary)] text-white shadow-lg
+         hover:bg-[var(--color-primary-hover)] hover:scale-110 active:scale-95
+         transition-all duration-300 flex items-center justify-center cursor-pointer z-50 group"
+  aria-label="Crear contenido"
+>
+  <svg
+    class="w-6 h-6 transform group-hover:rotate-90 transition-transform duration-300"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="2.5"
+  >
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+  </svg>
+</button>
+
+<!-- Modal del Creador -->
+<div
+  id="creator-modal"
+  class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-all duration-300"
+>
+  <div
+    class="bg-[var(--color-card)] border border-[var(--color-border)] rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300"
+    id="creator-modal-content"
+  >
+    <!-- Cabecera del Modal -->
+    <div class="px-6 py-5 border-b border-[var(--color-border)] flex items-center justify-between bg-gradient-to-r from-[var(--color-primary)]/5 to-transparent">
+      <h2 class="text-lg font-bold text-[var(--color-heading)] flex items-center gap-2">
+        <svg class="w-5 h-5 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Crear Nuevo Contenido
+      </h2>
+      <button
+        id="close-modal-btn"
+        class="text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]/50 p-1.5 rounded-lg transition-colors cursor-pointer"
+      >
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Pestañas de Selección de Tipo -->
+    <div class="flex border-b border-[var(--color-border)] bg-[var(--color-border)]/10">
+      <button
+        id="tab-leccion"
+        class="flex-1 py-3 text-center text-sm font-semibold border-b-2 border-[var(--color-primary)] text-[var(--color-primary)] transition-all cursor-pointer"
+      >
+        Nueva Lección
+      </button>
+      <button
+        id="tab-seccion"
+        class="flex-1 py-3 text-center text-sm font-semibold border-b-2 border-transparent text-[var(--color-muted)] hover:text-[var(--color-text)] transition-all cursor-pointer"
+      >
+        Nueva Sección
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <form id="creator-form" class="p-6 space-y-4">
+      <input type="hidden" id="field-tipo" name="tipo" value="leccion" />
+
+      <!-- Formulario para Lección -->
+      <div id="form-group-leccion" class="space-y-4">
+        <div>
+          <label for="select-seccion" class="block text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-1.5">
+            Sección de destino
+          </label>
+          <select
+            id="select-seccion"
+            name="seccionId"
+            class="w-full bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all cursor-pointer"
+          >
+            {secciones.map((s) => (
+              <option value={s.data.id}>
+                {s.data.id}. {s.data.titulo}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="input-lesson-number" class="block text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-1.5">
+              Número Lección
+            </label>
+            <input
+              type="number"
+              id="input-lesson-number"
+              name="lessonNumber"
+              placeholder="Ej: 13"
+              class="w-full bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+            />
+          </div>
+          <div>
+            <label for="input-duracion" class="block text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-1.5">
+              Duración (Opcional)
+            </label>
+            <input
+              type="text"
+              id="input-duracion"
+              name="duracion"
+              placeholder="Ej: 8 mins"
+              class="w-full bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="input-lesson-titulo" class="block text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-1.5">
+            Título de la Lección
+          </label>
+          <input
+            type="text"
+            id="input-lesson-titulo"
+            name="lessonTitulo"
+            placeholder="Ej: Trabajando con layouts"
+            class="w-full bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+          />
+        </div>
+      </div>
+
+      <!-- Formulario para Sección (Oculto al inicio) -->
+      <div id="form-group-seccion" class="space-y-4 hidden">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="col-span-1">
+            <label for="input-sec-id" class="block text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-1.5">
+              ID Sección
+            </label>
+            <input
+              type="text"
+              id="input-sec-id"
+              name="secId"
+              placeholder="Ej: 03"
+              class="w-full bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+            />
+          </div>
+          <div class="col-span-2">
+            <label for="input-sec-orden" class="block text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-1.5">
+              Orden de Ordenamiento
+            </label>
+            <input
+              type="number"
+              id="input-sec-orden"
+              name="secOrden"
+              placeholder="Ej: 3"
+              class="w-full bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="input-sec-titulo" class="block text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-1.5">
+            Título de la Sección
+          </label>
+          <input
+            type="text"
+            id="input-sec-titulo"
+            name="secTitulo"
+            placeholder="Ej: Estilos en Astro"
+            class="w-full bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+          />
+        </div>
+      </div>
+
+      <!-- Footer del Modal / Botón de Acción -->
+      <div class="pt-4 border-t border-[var(--color-border)] flex items-center justify-end gap-3">
+        <button
+          type="button"
+          id="cancel-modal-btn"
+          class="px-4 py-2 rounded-xl text-xs font-semibold text-[var(--color-muted)] hover:bg-[var(--color-border)]/50 transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all hover:shadow-md cursor-pointer flex items-center gap-1.5"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          Crear Contenido
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Script para manejar el modal flotante interactivo en cliente
+  function initModal() {
+    const fab = document.getElementById('creator-fab');
+    const modal = document.getElementById('creator-modal');
+    const modalContent = document.getElementById('creator-modal-content');
+    const closeBtn = document.getElementById('close-modal-btn');
+    const cancelBtn = document.getElementById('cancel-modal-btn');
+    const form = document.getElementById('creator-form') as HTMLFormElement;
+
+    // Elementos de Pestañas
+    const tabLeccion = document.getElementById('tab-leccion');
+    const tabSeccion = document.getElementById('tab-seccion');
+    const fieldTipo = document.getElementById('field-tipo') as HTMLInputElement;
+
+    // Grupos de campos
+    const groupLeccion = document.getElementById('form-group-leccion');
+    const groupSeccion = document.getElementById('form-group-seccion');
+
+    if (!fab || !modal || !modalContent || !closeBtn || !cancelBtn || !form) return;
+
+    function openModal() {
+      modal?.classList.remove('hidden');
+      modal?.classList.add('flex');
+      setTimeout(() => {
+        modalContent?.classList.remove('scale-95', 'opacity-0');
+        modalContent?.classList.add('scale-100', 'opacity-100');
+      }, 50);
+    }
+
+    function closeModal() {
+      modalContent?.classList.remove('scale-100', 'opacity-100');
+      modalContent?.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        modal?.classList.add('hidden');
+        modal?.classList.remove('flex');
+        form?.reset();
+        // Reset a pestaña lección por defecto
+        activateTab('leccion');
+      }, 200);
+    }
+
+    function activateTab(tipo: 'leccion' | 'seccion') {
+      if (!tabLeccion || !tabSeccion || !fieldTipo || !groupLeccion || !groupSeccion) return;
+      fieldTipo.value = tipo;
+
+      if (tipo === 'leccion') {
+        tabLeccion.classList.add('border-[var(--color-primary)]', 'text-[var(--color-primary)]');
+        tabLeccion.classList.remove('border-transparent', 'text-[var(--color-muted)]');
+        tabSeccion.classList.add('border-transparent', 'text-[var(--color-muted)]');
+        tabSeccion.classList.remove('border-[var(--color-primary)]', 'text-[var(--color-primary)]');
+
+        groupLeccion.classList.remove('hidden');
+        groupSeccion.classList.add('hidden');
+      } else {
+        tabSeccion.classList.add('border-[var(--color-primary)]', 'text-[var(--color-primary)]');
+        tabSeccion.classList.remove('border-transparent', 'text-[var(--color-muted)]');
+        tabLeccion.classList.add('border-transparent', 'text-[var(--color-muted)]');
+        tabLeccion.classList.remove('border-[var(--color-primary)]', 'text-[var(--color-primary)]');
+
+        groupSeccion.classList.remove('hidden');
+        groupLeccion.classList.add('hidden');
+      }
+    }
+
+    // Eventos
+    fab.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    tabLeccion?.addEventListener('click', () => activateTab('leccion'));
+    tabSeccion?.addEventListener('click', () => activateTab('seccion'));
+
+    // Envío del Formulario
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const tipoVal = formData.get('tipo');
+
+      let payload = {};
+
+      if (tipoVal === 'seccion') {
+        const id = formData.get('secId')?.toString().trim();
+        const titulo = formData.get('secTitulo')?.toString().trim();
+        const orden = formData.get('secOrden');
+
+        if (!id || !titulo || !orden) {
+          alert('Por favor, rellena todos los campos de la sección.');
+          return;
+        }
+
+        // Crear slug del archivo
+        const cleanId = id.padStart(2, '0');
+        const cleanTitle = titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const slug = `${cleanId}_${cleanTitle}`;
+
+        payload = {
+          tipo: 'seccion',
+          id: cleanId,
+          titulo,
+          slug,
+          orden: Number(orden)
+        };
+      } else {
+        const seccionId = formData.get('seccionId')?.toString();
+        const lessonNumber = formData.get('lessonNumber');
+        const lessonTitulo = formData.get('lessonTitulo')?.toString().trim();
+        const duracion = formData.get('duracion')?.toString().trim();
+
+        if (!seccionId || !lessonNumber || !lessonTitulo) {
+          alert('Por favor, rellena todos los campos obligatorios de la lección.');
+          return;
+        }
+
+        payload = {
+          tipo: 'leccion',
+          seccionId,
+          lessonNumber: Number(lessonNumber),
+          titulo: lessonTitulo,
+          duracion
+        };
+      }
+
+      try {
+        const response = await fetch('/api/crear', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          closeModal();
+          // Espera un instante a que el backend persista y recarga
+          setTimeout(() => {
+            window.location.reload();
+          }, 400);
+        } else {
+          alert('Error: ' + (data.error || 'No se pudo crear el elemento'));
+        }
+      } catch (err) {
+        console.error('Error al realizar la petición:', err);
+        alert('Ocurrió un error de red al intentar crear el elemento.');
+      }
+    });
+  }
+
+  // Inicializar en montajes y transiciones de Astro (View Transitions)
+  initModal();
+  document.addEventListener('astro:page-load', initModal);
+</script>

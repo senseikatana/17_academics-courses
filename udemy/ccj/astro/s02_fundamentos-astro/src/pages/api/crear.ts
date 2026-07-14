@@ -30,6 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
     const { tipo } = body;
+    const cursoId = 'astro-ccj-udemy';
 
     if (tipo === 'seccion') {
       const { id, titulo, slug, orden } = body;
@@ -53,7 +54,8 @@ orden: ${Number(orden)}
 
       // 2. Guardar en base de datos Astro DB para reflejo inmediato en UI
       await db.insert(Seccion).values({
-        id,
+        id: `${cursoId}-${id}`,
+        cursoId,
         titulo,
         slug,
         orden: Number(orden)
@@ -86,9 +88,9 @@ orden: ${Number(lessonNumber)}
 
       // 2. Guardar en base de datos Astro DB para reflejo inmediato en UI
       await db.insert(Leccion).values({
-        id: `${seccionId}-${lessonPad}`,
+        id: `${cursoId}-${seccionId}-${lessonPad}`,
+        seccionId: `${cursoId}-${seccionId}`,
         titulo: fullTitle,
-        seccionId,
         orden: Number(lessonNumber)
       });
 

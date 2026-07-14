@@ -3,12 +3,16 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import node from '@astrojs/node';
 import db from '@astrojs/db';
-
 import react from '@astrojs/react';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Define database file fallback for local production builds
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Define a shared database file in the workspace root for local production builds
 if (!process.env.ASTRO_DATABASE_FILE && !process.env.ASTRO_DB_REMOTE_URL) {
-  process.env.ASTRO_DATABASE_FILE = 'local.db';
+  process.env.ASTRO_DATABASE_FILE = path.resolve(__dirname, '../../../../local.db');
 }
 
 // https://astro.build/config

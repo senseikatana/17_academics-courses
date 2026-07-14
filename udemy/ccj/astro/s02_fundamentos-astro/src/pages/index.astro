@@ -1,17 +1,18 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { db, Seccion, Leccion, ProgresoLeccion } from 'astro:db';
+import { db, Seccion, Leccion, ProgresoLeccion, eq } from 'astro:db';
 import type { Curso } from '../types';
 
 const [curso]: Curso[] = await getCollection('curso');
+const cursoId = 'astro-ccj-udemy';
 
 // Obtener Secciones desde Astro DB
-const dbSecciones = await db.select().from(Seccion);
+const dbSecciones = await db.select().from(Seccion).where(eq(Seccion.cursoId, cursoId));
 dbSecciones.sort((a, b) => a.orden - b.orden);
 const secciones = dbSecciones.map((s) => ({
   data: {
-    id: s.id,
+    id: s.id.replace(`${cursoId}-`, ''),
     titulo: s.titulo,
     slug: s.slug,
     orden: s.orden
@@ -20,18 +21,20 @@ const secciones = dbSecciones.map((s) => ({
 
 // Obtener Lecciones desde Astro DB
 const dbLecciones = await db.select().from(Leccion);
-const lecciones = dbLecciones.map((l) => ({
-  data: {
-    id: l.id,
-    titulo: l.titulo,
-    seccionId: l.seccionId,
-    orden: l.orden
-  }
-}));
+const lecciones = dbLecciones
+  .filter((l) => l.seccionId.startsWith(cursoId))
+  .map((l) => ({
+    data: {
+      id: l.id.replace(`${cursoId}-`, ''),
+      titulo: l.titulo,
+      seccionId: l.seccionId.replace(`${cursoId}-`, ''),
+      orden: l.orden
+    }
+  }));
 
 // Obtener todas las lecciones completadas desde Astro DB
-const completedRows = await db.select().from(ProgresoLeccion);
-const completedSet = new Set(completedRows.map((r) => r.leccionId));
+const completedRows = await db.select().from(ProgresoLeccion).where(eq(ProgresoLeccion.cursoId, cursoId));
+const completedSet = new Set(completedRows.map((r) => r.leccionId.replace(`${cursoId}-`, '')));
 
 const leccionesPorSeccion = new Map<string, any[]>();
 for (const l of lecciones) {
@@ -91,7 +94,7 @@ const isGlobalCompleted = totalSecciones > 0 && totalSeccionesCompletadas >= tot
           </div>
         </div>
 
-        <!-- Progreso global del curso -->
+        {/* Progreso global del curso */}
         <div class={`card mt-6 ${isGlobalCompleted ? 'border-completed' : ''}`}>
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-xs font-medium text-[var(--color-muted)]">Progreso total del curso</span>
@@ -116,7 +119,7 @@ const isGlobalCompleted = totalSecciones > 0 && totalSeccionesCompletadas >= tot
         </div>
       </header>
 
-      <!-- Bento Grid: tarjetas de secciones -->
+      {/* Bento Grid: tarjetas de secciones */}
       <div class="bento-grid" id="bento-secciones">
         {seccionesConProgreso.map(({ seccion, totalLecciones, pct, isCompleted }, i) => {
           return (

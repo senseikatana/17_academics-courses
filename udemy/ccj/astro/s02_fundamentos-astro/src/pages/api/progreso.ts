@@ -6,6 +6,7 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
   try {
     const { seccionSlug, leccionId, completada } = await request.json();
+    const cursoId = 'astro-ccj-udemy';
 
     if (!seccionSlug || !leccionId) {
       return new Response(JSON.stringify({ error: 'Faltan parámetros requeridos.' }), {
@@ -14,6 +15,9 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Asegurar el prefijo del curso en el ID de la lección
+    const dbLeccionId = leccionId.startsWith(cursoId) ? leccionId : `${cursoId}-${leccionId}`;
+
     if (completada) {
       // Verificar si ya existe
       const existing = await db
@@ -21,13 +25,14 @@ export const POST: APIRoute = async ({ request }) => {
         .from(ProgresoLeccion)
         .where(
           and(
+            eq(ProgresoLeccion.cursoId, cursoId),
             eq(ProgresoLeccion.seccionSlug, seccionSlug),
-            eq(ProgresoLeccion.leccionId, leccionId)
+            eq(ProgresoLeccion.leccionId, dbLeccionId)
           )
         );
 
       if (existing.length === 0) {
-        await db.insert(ProgresoLeccion).values({ seccionSlug, leccionId });
+        await db.insert(ProgresoLeccion).values({ cursoId, seccionSlug, leccionId: dbLeccionId });
       }
     } else {
       // Eliminar el registro
@@ -35,8 +40,9 @@ export const POST: APIRoute = async ({ request }) => {
         .delete(ProgresoLeccion)
         .where(
           and(
+            eq(ProgresoLeccion.cursoId, cursoId),
             eq(ProgresoLeccion.seccionSlug, seccionSlug),
-            eq(ProgresoLeccion.leccionId, leccionId)
+            eq(ProgresoLeccion.leccionId, dbLeccionId)
           )
         );
     }

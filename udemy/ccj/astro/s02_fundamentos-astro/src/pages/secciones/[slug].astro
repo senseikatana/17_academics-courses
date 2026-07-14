@@ -1,14 +1,15 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { db, Seccion, Leccion, ProgresoLeccion, eq } from 'astro:db';
+import { db, Seccion, Leccion, ProgresoLeccion, and, eq } from 'astro:db';
 import { SeccionProgressTracker } from '../../components';
 import type { Curso } from '../../types';
 
 const { slug } = Astro.params;
+const cursoId = 'astro-ccj-udemy';
 
-// Obtener todas las Secciones desde Astro DB
-const dbSecciones = await db.select().from(Seccion);
+// Obtener todas las Secciones desde Astro DB para el curso actual
+const dbSecciones = await db.select().from(Seccion).where(eq(Seccion.cursoId, cursoId));
 dbSecciones.sort((a, b) => a.orden - b.orden);
 
 const dbSeccion = dbSecciones.find((s) => s.slug === slug);
@@ -18,7 +19,7 @@ if (!dbSeccion) {
 
 const seccion = {
   data: {
-    id: dbSeccion.id,
+    id: dbSeccion.id.replace(`${cursoId}-`, ''),
     titulo: dbSeccion.titulo,
     slug: dbSeccion.slug,
     orden: dbSeccion.orden
@@ -26,23 +27,22 @@ const seccion = {
 };
 
 // Obtener Lecciones desde Astro DB para la sección actual
-const dbLecciones = await db.select().from(Leccion);
+const dbLecciones = await db.select().from(Leccion).where(eq(Leccion.seccionId, dbSeccion.id));
 const lecciones = dbLecciones
-  .filter((l) => l.seccionId === seccion.data.id)
   .sort((a, b) => a.orden - b.orden)
   .map((l) => ({
     data: {
-      id: l.id,
+      id: l.id.replace(`${cursoId}-`, ''),
       titulo: l.titulo,
-      seccionId: l.seccionId,
+      seccionId: l.seccionId.replace(`${cursoId}-`, ''),
       orden: l.orden
     }
   }));
 
-const idx = dbSecciones.findIndex((s) => s.id === seccion.data.id);
+const idx = dbSecciones.findIndex((s) => s.id === dbSeccion.id);
 const seccionAnterior = idx > 0 ? {
   data: {
-    id: dbSecciones[idx - 1].id,
+    id: dbSecciones[idx - 1].id.replace(`${cursoId}-`, ''),
     titulo: dbSecciones[idx - 1].titulo,
     slug: dbSecciones[idx - 1].slug,
     orden: dbSecciones[idx - 1].orden
@@ -50,7 +50,7 @@ const seccionAnterior = idx > 0 ? {
 } : null;
 const seccionSiguiente = idx < dbSecciones.length - 1 ? {
   data: {
-    id: dbSecciones[idx + 1].id,
+    id: dbSecciones[idx + 1].id.replace(`${cursoId}-`, ''),
     titulo: dbSecciones[idx + 1].titulo,
     slug: dbSecciones[idx + 1].slug,
     orden: dbSecciones[idx + 1].orden
@@ -63,8 +63,13 @@ const [curso]: Curso[] = await getCollection('curso');
 const completedRows = await db
   .select()
   .from(ProgresoLeccion)
-  .where(eq(ProgresoLeccion.seccionSlug, slug || ''));
-const completedIds = completedRows.map((row) => row.leccionId);
+  .where(
+    and(
+      eq(ProgresoLeccion.cursoId, cursoId),
+      eq(ProgresoLeccion.seccionSlug, slug || '')
+    )
+  );
+const completedIds = completedRows.map((row) => row.leccionId.replace(`${cursoId}-`, ''));
 
 // Serializar las lecciones para pasarlas como props al componente de React
 const serializedLecciones = lecciones.map((l) => ({
