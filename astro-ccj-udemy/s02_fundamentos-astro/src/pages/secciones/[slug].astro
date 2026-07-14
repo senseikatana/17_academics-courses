@@ -30,7 +30,7 @@ const [curso] = await getCollection('curso');
 ---
 
 <BaseLayout title={`${seccion.data.id}. ${seccion.data.titulo} — ${curso.data.titulo}`}>
-  <main class="min-h-screen px-4 sm:px-6 lg:px-8 py-12" transition:animate="fade">
+  <main id="seccion-container" class="min-h-screen px-4 sm:px-6 lg:px-8 py-12" data-slug={slug} transition:animate="fade">
     <div class="max-w-2xl mx-auto">
       <!-- Navegación superior -->
       <nav class="mb-6">
@@ -143,13 +143,25 @@ const [curso] = await getCollection('curso');
   </main>
 </BaseLayout>
 
-<script define:vars={{ slug }}>
-  (function () {
+<script>
+  let currentSyncCheckboxes: (() => void) | null = null;
+
+  function setupSeccion() {
+    const container = document.getElementById('seccion-container');
+    if (!container) {
+      if (currentSyncCheckboxes) {
+        window.removeEventListener('storage', currentSyncCheckboxes);
+        currentSyncCheckboxes = null;
+      }
+      return;
+    }
+
+    const slug = container.dataset.slug;
     const STORAGE_KEY = `progreso-astro-wordpress-${slug}`;
 
-    const checkboxes = document.querySelectorAll(
+    const checkboxes = container.querySelectorAll(
       '#lista-lecciones input[type="checkbox"]'
-    );
+    ) as NodeListOf<HTMLInputElement>;
     const barraProgreso = document.getElementById('progreso-seccion-barra');
     const textoProgreso = document.getElementById('progreso-seccion-texto');
     const totalLecciones = checkboxes.length;
@@ -162,15 +174,16 @@ const [curso] = await getCollection('curso');
       }
     }
 
-    function saveCompleted(ids) {
+    function saveCompleted(ids: string[]) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
       window.dispatchEvent(new Event('storage'));
     }
 
     function syncCheckboxes() {
+      if (!document.getElementById('seccion-container')) return;
       const completed = loadCompleted();
       checkboxes.forEach((cb) => {
-        cb.checked = completed.includes(cb.dataset.leccionId);
+        cb.checked = completed.includes(cb.dataset.leccionId || '');
       });
       actualizarProgreso();
     }
@@ -183,10 +196,11 @@ const [curso] = await getCollection('curso');
       if (textoProgreso) textoProgreso.textContent = `${hechas} / ${totalLecciones}`;
     }
 
-    function handleToggle(e) {
-      const cb = e.currentTarget;
+    function handleToggle(e: Event) {
+      const cb = e.currentTarget as HTMLInputElement;
       const completed = loadCompleted();
       const id = cb.dataset.leccionId;
+      if (!id) return;
 
       if (cb.checked) {
         if (!completed.includes(id)) completed.push(id);
@@ -209,9 +223,18 @@ const [curso] = await getCollection('curso');
     if (checkboxes.length > 0) {
       syncCheckboxes();
       checkboxes.forEach((cb) => {
-        cb.addEventListener('change', handleToggle);
+        cb.onclick = handleToggle;
       });
+
+      if (currentSyncCheckboxes) {
+        window.removeEventListener('storage', currentSyncCheckboxes);
+      }
+      currentSyncCheckboxes = syncCheckboxes;
       window.addEventListener('storage', syncCheckboxes);
     }
-  })();
+  }
+
+  // Ejecutar en la carga inicial y tras cada transición de página de Astro
+  setupSeccion();
+  document.addEventListener('astro:page-load', setupSeccion);
 </script>

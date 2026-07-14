@@ -100,72 +100,59 @@ const totalSecciones = secciones.length;
 </BaseLayout>
 
 <script>
-  (function () {
-    function recalcAll() {
-      const secciones = document.querySelectorAll('[data-seccion-id]');
-      let completadas = 0;
-      const total = secciones.length;
+  function recalcAll() {
+    const secciones = document.querySelectorAll('[data-seccion-id]');
+    let completadas = 0;
+    const total = secciones.length;
 
-      secciones.forEach(function (el) {
-        const slug = el.dataset.slug;
-        const storageKey = 'progreso-astro-wordpress-' + slug;
-        var ids;
-        try {
-          ids = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        } catch {
-          ids = [];
-        }
-
-        const leccionesEnSlug = el.querySelector('[data-progreso-seccion]');
-        if (leccionesEnSlug) {
-          const p = el.querySelector('p.text-xs');
-          var totalLecciones = 0;
-          if (p) {
-            var match = p.textContent.match(/(\d+)\s*lecciones/);
-            if (match) totalLecciones = parseInt(match[1], 10);
-          }
-
-          const hechas = ids.length;
-          const pct = totalLecciones > 0 ? Math.round((hechas / totalLecciones) * 100) : 0;
-
-          const barra = el.querySelector('[data-progreso-barra]');
-          const texto = el.querySelector('[data-progreso-texto]');
-          if (barra) barra.style.width = pct + '%';
-          if (texto) texto.textContent = pct + '%';
-
-          if (hechas > 0 && hechas >= totalLecciones) completadas++;
-        }
-      });
-
-      const barraGlobal = document.getElementById('progreso-global-barra');
-      const textoGlobal = document.getElementById('progreso-global-texto');
-      if (barraGlobal && textoGlobal) {
-        completadas = 0;
-        secciones.forEach(function (el) {
-          const slug = el.dataset.slug;
-          const storageKey = 'progreso-astro-wordpress-' + slug;
-          var ids;
-          try {
-            ids = JSON.parse(localStorage.getItem(storageKey) || '[]');
-          } catch { ids = []; }
-          const p = el.querySelector('p.text-xs');
-          var totalLecciones = 0;
-          if (p) {
-            var match = p.textContent.match(/(\d+)\s*lecciones/);
-            if (match) totalLecciones = parseInt(match[1], 10);
-          }
-          if (totalLecciones > 0 && ids.length >= totalLecciones) completadas++;
-        });
-
-        const pctGlobal = total > 0 ? Math.round((completadas / total) * 100) : 0;
-        barraGlobal.style.width = pctGlobal + '%';
-        textoGlobal.textContent = completadas + ' / ' + total;
+    secciones.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      const slug = htmlEl.dataset.slug;
+      const storageKey = 'progreso-astro-wordpress-' + slug;
+      let ids: string[] = [];
+      try {
+        ids = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      } catch {
+        ids = [];
       }
+
+      const leccionesEnSlug = el.querySelector('[data-progreso-seccion]');
+      if (leccionesEnSlug) {
+        const p = el.querySelector('p.text-xs');
+        let totalLecciones = 0;
+        if (p && p.textContent) {
+          const match = p.textContent.match(/(\d+)\s*lecciones/);
+          if (match) totalLecciones = parseInt(match[1], 10);
+        }
+
+        const hechas = ids.length;
+        const pct = totalLecciones > 0 ? Math.round((hechas / totalLecciones) * 100) : 0;
+
+        const barra = el.querySelector('[data-progreso-barra]') as HTMLElement;
+        const texto = el.querySelector('[data-progreso-texto]');
+        if (barra) barra.style.width = pct + '%';
+        if (texto) texto.textContent = pct + '%';
+
+        if (totalLecciones > 0 && hechas >= totalLecciones) {
+          completadas++;
+        }
+      }
+    });
+
+    const barraGlobal = document.getElementById('progreso-global-barra');
+    const textoGlobal = document.getElementById('progreso-global-texto');
+    if (barraGlobal && textoGlobal) {
+      const pctGlobal = total > 0 ? Math.round((completadas / total) * 100) : 0;
+      barraGlobal.style.width = pctGlobal + '%';
+      textoGlobal.textContent = `${completadas} / ${total}`;
     }
+  }
 
-    recalcAll();
+  // Ejecutar en la carga inicial y tras cada transición de página de Astro
+  recalcAll();
+  document.addEventListener('astro:page-load', recalcAll);
 
-    window.addEventListener('storage', recalcAll);
-    window.addEventListener('progreso-update', recalcAll);
-  })();
+  // Escuchar cambios de progreso
+  window.addEventListener('storage', recalcAll);
+  window.addEventListener('progreso-update', recalcAll);
 </script>

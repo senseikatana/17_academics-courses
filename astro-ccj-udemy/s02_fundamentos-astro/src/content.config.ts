@@ -1,7 +1,9 @@
 import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 const secciones = defineCollection({
+  loader: glob({ pattern: "*.md", base: "./src/content/secciones" }),
   schema: z.object({
     id: z.string(),
     titulo: z.string(),
@@ -11,6 +13,7 @@ const secciones = defineCollection({
 });
 
 const lecciones = defineCollection({
+  loader: glob({ pattern: "*.md", base: "./src/content/lecciones" }),
   schema: z.object({
     id: z.string(),
     titulo: z.string(),
@@ -20,6 +23,7 @@ const lecciones = defineCollection({
 });
 
 const curso = defineCollection({
+  loader: glob({ pattern: "*.md", base: "./src/content/curso" }),
   schema: z.object({
     titulo: z.string(),
     instructor: z.string(),

@@ -11,53 +11,69 @@
          cursor-pointer"
   title="Cambiar a modo oscuro (Ctrl+L)"
 >
-  <span id="theme-icon">🌕</span>
+  <span id="theme-icon" class="text-xl leading-none">🌙</span>
 </button>
 
 <script>
-  (function () {
-    var KEY = 'theme-preference';
-    var btn = document.getElementById('theme-toggle');
-    var icono = document.getElementById('theme-icon');
-    var html = document.documentElement;
+  const KEY = 'theme-preference';
 
-    function safeGet(fallback) {
-      try { return localStorage.getItem(KEY) || fallback; } catch { return fallback; }
+  function getTheme() {
+    try {
+      return localStorage.getItem(KEY) || 'light';
+    } catch {
+      return 'light';
     }
+  }
 
-    function safeSet(val) {
-      try { localStorage.setItem(KEY, val); } catch {}
-    }
+  function setTheme(val: string) {
+    try {
+      localStorage.setItem(KEY, val);
+    } catch {}
+  }
 
-    function aplicar(theme) {
-      html.classList.remove('dark', 'light');
-      html.classList.add(theme);
-      var esDark = theme === 'dark';
-      icono.textContent = esDark ? '☀️' : '🌕';
-      var label = esDark
+  function aplicar(theme: string) {
+    const html = document.documentElement;
+    html.classList.remove('dark', 'light');
+    html.classList.add(theme);
+    setTheme(theme);
+
+    const btn = document.getElementById('theme-toggle');
+    const icono = document.getElementById('theme-icon');
+    if (btn && icono) {
+      const esDark = theme === 'dark';
+      icono.textContent = esDark ? '☀️' : '🌙';
+      const label = esDark
         ? 'Cambiar a modo claro (Ctrl+L)'
         : 'Cambiar a modo oscuro (Ctrl+L)';
       btn.setAttribute('title', label);
       btn.setAttribute('aria-label', label);
-      safeSet(theme);
     }
+  }
 
-    function toggle() {
-      aplicar(safeGet('light') === 'dark' ? 'light' : 'dark');
+  function toggle() {
+    aplicar(getTheme() === 'dark' ? 'light' : 'dark');
+  }
+
+  function initTheme() {
+    const btn = document.getElementById('theme-toggle');
+    if (btn) {
+      btn.onclick = toggle;
     }
+    aplicar(getTheme());
+  }
 
-    btn.onclick = toggle;
+  // Ejecutar en la carga inicial y en cada transición de página
+  initTheme();
+  document.addEventListener('astro:page-load', initTheme);
 
-    if (!window.__themeKeydown) {
-      window.__themeKeydown = true;
-      document.addEventListener('keydown', function (e) {
-        if (e.ctrlKey && e.key.toLowerCase() === 'l') {
-          e.preventDefault();
-          toggle();
-        }
-      });
-    }
-
-    aplicar(safeGet('light'));
-  })();
+  // Registrar el atajo de teclado solo una vez a nivel global
+  if (typeof window !== 'undefined' && !(window as any).__themeKeydown) {
+    (window as any).__themeKeydown = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        toggle();
+      }
+    });
+  }
 </script>
