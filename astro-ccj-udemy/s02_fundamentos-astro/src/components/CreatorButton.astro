@@ -229,12 +229,14 @@ secciones.sort((a, b) => a.data.orden - b.data.orden);
     }
 
     function openModal() {
+      if (!modal) return;
       modal.classList.remove('opacity-0', 'pointer-events-none');
       const innerCard = modal.querySelector('div');
       if (innerCard) innerCard.classList.remove('scale-95');
     }
 
     function closeModal() {
+      if (!modal) return;
       modal.classList.add('opacity-0', 'pointer-events-none');
       const innerCard = modal.querySelector('div');
       if (innerCard) innerCard.classList.add('scale-95');
