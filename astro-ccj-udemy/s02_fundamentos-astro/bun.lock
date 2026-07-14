@@ -6,6 +6,7 @@
       "name": "02_fundamentos",
       "dependencies": {
         "astro": "^7.0.9",
+        "zod": "^4.4.3",
       },
     },
   },

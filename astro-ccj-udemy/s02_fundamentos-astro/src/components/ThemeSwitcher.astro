@@ -9,45 +9,55 @@
          focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-bg)]
          transition-transform duration-300 ease-out
          cursor-pointer"
-  aria-label="Cambiar a modo oscuro"
   title="Cambiar a modo oscuro (Ctrl+L)"
-  onclick="toggleTema()"
 >
   <span id="theme-icon">🌕</span>
 </button>
 
 <script>
   (function () {
+    var KEY = 'theme-preference';
     var btn = document.getElementById('theme-toggle');
-    if (btn.dataset.init) return;
-    btn.dataset.init = '1';
-
     var icono = document.getElementById('theme-icon');
     var html = document.documentElement;
+
+    function safeGet(fallback) {
+      try { return localStorage.getItem(KEY) || fallback; } catch { return fallback; }
+    }
+
+    function safeSet(val) {
+      try { localStorage.setItem(KEY, val); } catch {}
+    }
 
     function aplicar(theme) {
       html.classList.remove('dark', 'light');
       html.classList.add(theme);
       var esDark = theme === 'dark';
       icono.textContent = esDark ? '☀️' : '🌕';
-      var label = esDark ? 'Cambiar a modo claro (Ctrl+L)' : 'Cambiar a modo oscuro (Ctrl+L)';
+      var label = esDark
+        ? 'Cambiar a modo claro (Ctrl+L)'
+        : 'Cambiar a modo oscuro (Ctrl+L)';
       btn.setAttribute('title', label);
       btn.setAttribute('aria-label', label);
-      localStorage.setItem('theme-preference', theme);
+      safeSet(theme);
     }
 
-    window.toggleTema = function () {
-      var current = localStorage.getItem('theme-preference') || 'light';
-      aplicar(current === 'dark' ? 'light' : 'dark');
-    };
+    function toggle() {
+      aplicar(safeGet('light') === 'dark' ? 'light' : 'dark');
+    }
 
-    document.addEventListener('keydown', function (e) {
-      if (e.ctrlKey && e.key.toLowerCase() === 'l') {
-        e.preventDefault();
-        window.toggleTema();
-      }
-    });
+    btn.onclick = toggle;
 
-    aplicar(localStorage.getItem('theme-preference') || 'light');
+    if (!window.__themeKeydown) {
+      window.__themeKeydown = true;
+      document.addEventListener('keydown', function (e) {
+        if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+          e.preventDefault();
+          toggle();
+        }
+      });
+    }
+
+    aplicar(safeGet('light'));
   })();
 </script>
