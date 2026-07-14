@@ -1,17 +1,51 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { db, ProgresoLeccion } from 'astro:db';
 import type { Curso, Seccion, Leccion } from '../types';
 
 const [curso]: Curso[] = await getCollection('curso');
 const secciones: Seccion[] = await getCollection('secciones');
 secciones.sort((a, b) => a.data.orden - b.data.orden);
 const lecciones: Leccion[] = await getCollection('lecciones');
-const leccionesPorSeccion = new Map<string, number>();
+
+// Obtener todas las lecciones completadas desde Astro DB
+const completedRows = await db.select().from(ProgresoLeccion);
+const completedSet = new Set(completedRows.map((r) => r.leccionId));
+
+const leccionesPorSeccion = new Map<string, Leccion[]>();
 for (const l of lecciones) {
-  leccionesPorSeccion.set(l.data.seccionId, (leccionesPorSeccion.get(l.data.seccionId) ?? 0) + 1);
+  const secId = l.data.seccionId;
+  if (!leccionesPorSeccion.has(secId)) {
+    leccionesPorSeccion.set(secId, []);
+  }
+  leccionesPorSeccion.get(secId)!.push(l);
 }
+
+let totalSeccionesCompletadas = 0;
+const seccionesConProgreso = secciones.map((seccion) => {
+  const secLecciones = leccionesPorSeccion.get(seccion.data.id) ?? [];
+  const totalLecciones = secLecciones.length;
+  const hechasLecciones = secLecciones.filter((l) => completedSet.has(l.data.id)).length;
+  const pct = totalLecciones > 0 ? Math.round((hechasLecciones / totalLecciones) * 100) : 0;
+  const isCompleted = totalLecciones > 0 && hechasLecciones >= totalLecciones;
+
+  if (isCompleted) {
+    totalSeccionesCompletadas++;
+  }
+
+  return {
+    seccion,
+    totalLecciones,
+    hechasLecciones,
+    pct,
+    isCompleted,
+  };
+});
+
 const totalSecciones = secciones.length;
+const pctGlobal = totalSecciones > 0 ? Math.round((totalSeccionesCompletadas / totalSecciones) * 100) : 0;
+const isGlobalCompleted = totalSecciones > 0 && totalSeccionesCompletadas >= totalSecciones;
 ---
 
 <BaseLayout title={`${curso.data.titulo} — ${curso.data.instructor}`}>
@@ -39,18 +73,25 @@ const totalSecciones = secciones.length;
         </div>
 
         <!-- Progreso global del curso -->
-        <div class="card mt-6">
+        <div class={`card mt-6 ${isGlobalCompleted ? 'border-completed' : ''}`}>
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-xs font-medium text-[var(--color-muted)]">Progreso total del curso</span>
-            <span id="progreso-global-texto" class="text-xs font-medium text-[var(--color-primary)]">
-              0 / {totalSecciones}
+            <span
+              id="progreso-global-texto"
+              class="text-xs font-medium"
+              style={{ color: isGlobalCompleted ? 'var(--color-success-text)' : 'var(--color-primary)' }}
+            >
+              {totalSeccionesCompletadas} / {totalSecciones}
             </span>
           </div>
           <div class="w-full h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
             <div
               id="progreso-global-barra"
-              class="h-full bg-[var(--color-primary)] rounded-full transition-all duration-700"
-              style="width: 0%"
+              class="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${pctGlobal}%`,
+                backgroundColor: isGlobalCompleted ? 'var(--color-success)' : 'var(--color-primary)'
+              }}
             ></div>
           </div>
         </div>
@@ -58,12 +99,11 @@ const totalSecciones = secciones.length;
 
       <!-- Bento Grid: tarjetas de secciones -->
       <div class="bento-grid" id="bento-secciones">
-        {secciones.map((seccion, i) => {
-          const numLecciones = leccionesPorSeccion.get(seccion.data.id) ?? 0;
+        {seccionesConProgreso.map(({ seccion, totalLecciones, pct, isCompleted }, i) => {
           return (
           <a
             href={`/secciones/${seccion.data.slug}`}
-            class="card card-hover group cursor-pointer no-underline block"
+            class={`card card-hover group cursor-pointer no-underline block ${isCompleted ? 'border-completed' : ''}`}
             data-seccion-id={seccion.data.id}
             data-slug={seccion.data.slug}
           >
@@ -74,19 +114,28 @@ const totalSecciones = secciones.length;
                   {seccion.data.titulo}
                 </h3>
                 <p class="text-xs text-[var(--color-muted)] mt-1">
-                  {numLecciones} lecciones
+                  {totalLecciones} lecciones
                 </p>
-                <!-- Barra de progreso individual -->
+                {/* Barra de progreso individual */}
                 <div class="mt-3" data-progreso-seccion>
                   <div class="flex items-center justify-between mb-1">
                     <span class="text-[10px] font-medium text-[var(--color-muted)]">Progreso</span>
-                    <span class="text-[10px] font-medium text-[var(--color-primary)]" data-progreso-texto>0%</span>
+                    <span
+                      class="text-[10px] font-medium"
+                      style={{ color: isCompleted ? 'var(--color-success-text)' : 'var(--color-primary)' }}
+                      data-progreso-texto
+                    >
+                      {pct}%
+                    </span>
                   </div>
                   <div class="w-full h-1.5 bg-[var(--color-border)] rounded-full overflow-hidden">
                     <div
-                      class="h-full bg-[var(--color-primary)] rounded-full transition-all duration-500"
+                      class="h-full rounded-full transition-all duration-500"
                       data-progreso-barra
-                      style="width: 0%"
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: isCompleted ? 'var(--color-success)' : 'var(--color-primary)'
+                      }}
                     ></div>
                   </div>
                 </div>
@@ -99,76 +148,3 @@ const totalSecciones = secciones.length;
     </div>
   </main>
 </BaseLayout>
-
-<script>
-  function recalcAll() {
-    const secciones = document.querySelectorAll('[data-seccion-id]');
-    let completadas = 0;
-    const total = secciones.length;
-
-    secciones.forEach((el) => {
-      const htmlEl = el as HTMLElement;
-      const slug = htmlEl.dataset.slug;
-      const storageKey = 'progreso-astro-wordpress-' + slug;
-      let ids: string[] = [];
-      try {
-        ids = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      } catch {
-        ids = [];
-      }
-
-      const leccionesEnSlug = el.querySelector('[data-progreso-seccion]');
-      if (leccionesEnSlug) {
-        const p = el.querySelector('p.text-xs');
-        let totalLecciones = 0;
-        if (p && p.textContent) {
-          const match = p.textContent.match(/(\d+)\s*lecciones/);
-          if (match) totalLecciones = parseInt(match[1], 10);
-        }
-
-        const hechas = ids.length;
-        const pct = totalLecciones > 0 ? Math.round((hechas / totalLecciones) * 100) : 0;
-
-        const barra = el.querySelector('[data-progreso-barra]') as HTMLElement;
-        const texto = el.querySelector('[data-progreso-texto]');
-        if (barra) {
-          barra.style.width = pct + '%';
-          if (pct === 100) {
-            barra.style.backgroundColor = 'var(--color-success)';
-          } else {
-            barra.style.backgroundColor = '';
-          }
-        }
-        if (texto) texto.textContent = pct + '%';
-
-        if (totalLecciones > 0 && hechas >= totalLecciones) {
-          completadas++;
-          htmlEl.classList.add('border-completed');
-        } else {
-          htmlEl.classList.remove('border-completed');
-        }
-      }
-    });
-
-    const barraGlobal = document.getElementById('progreso-global-barra');
-    const textoGlobal = document.getElementById('progreso-global-texto');
-    if (barraGlobal && textoGlobal) {
-      const pctGlobal = total > 0 ? Math.round((completadas / total) * 100) : 0;
-      barraGlobal.style.width = pctGlobal + '%';
-      if (pctGlobal === 100) {
-        barraGlobal.style.backgroundColor = 'var(--color-success)';
-      } else {
-        barraGlobal.style.backgroundColor = '';
-      }
-      textoGlobal.textContent = `${completadas} / ${total}`;
-    }
-  }
-
-  // Ejecutar en la carga inicial y tras cada transición de página de Astro
-  recalcAll();
-  document.addEventListener('astro:page-load', recalcAll);
-
-  // Escuchar cambios de progreso
-  window.addEventListener('storage', recalcAll);
-  window.addEventListener('progreso-update', recalcAll);
-</script>

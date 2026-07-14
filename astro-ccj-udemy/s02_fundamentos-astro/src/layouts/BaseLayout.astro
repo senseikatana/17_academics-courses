@@ -30,30 +30,7 @@ const { title = 'Aprende Astro y Headless WordPress — Curso completo', descrip
         applyTheme();
         document.addEventListener('astro:page-load', applyTheme);
 
-        // Sincronizar y forzar el progreso de las secciones 01 y 02
-        function syncProgreso(key, list) {
-          var targetVal = JSON.stringify(list);
-          if (localStorage.getItem(key) !== targetVal) {
-            localStorage.setItem(key, targetVal);
-            return true;
-          }
-          return false;
-        }
 
-        var updateNeeded = false;
-        if (syncProgreso('progreso-astro-wordpress-01_introduccion', ["01-01", "01-02", "01-03", "01-04"])) {
-          updateNeeded = true;
-        }
-        if (syncProgreso('progreso-astro-wordpress-02_fundamentos', ["02-03", "02-04", "02-05", "02-06", "02-07", "02-08", "02-09", "02-10", "02-11"])) {
-          updateNeeded = true;
-        }
-
-        if (updateNeeded) {
-          setTimeout(function() {
-            window.dispatchEvent(new Event('storage'));
-            window.dispatchEvent(new CustomEvent('progreso-update'));
-          }, 100);
-        }
       })();
     </script>
     <ClientRouter />

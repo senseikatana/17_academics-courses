@@ -1,15 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { db, ProgresoLeccion, eq } from 'astro:db';
+import { SeccionProgressTracker } from '../../components';
 import type { Curso, Seccion, Leccion } from '../../types';
-
-export async function getStaticPaths() {
-  const secciones: Seccion[] = await getCollection('secciones');
-  return secciones.map((seccion) => ({
-    params: { slug: seccion.data.slug },
-    props: { slug: seccion.data.slug },
-  }));
-}
 
 const { slug } = Astro.params;
 const secciones: Seccion[] = await getCollection('secciones');
@@ -28,6 +22,19 @@ const seccionAnterior = idx > 0 ? secciones[idx - 1] : null;
 const seccionSiguiente = idx < secciones.length - 1 ? secciones[idx + 1] : null;
 
 const [curso]: Curso[] = await getCollection('curso');
+
+// Obtener lecciones completadas desde Astro DB
+const completedRows = await db
+  .select()
+  .from(ProgresoLeccion)
+  .where(eq(ProgresoLeccion.seccionSlug, slug || ''));
+const completedIds = completedRows.map((row) => row.leccionId);
+
+// Serializar las lecciones para pasarlas como props al componente de React
+const serializedLecciones = lecciones.map((l) => ({
+  id: l.data.id,
+  titulo: l.data.titulo,
+}));
 ---
 
 <BaseLayout title={`${seccion.data.id}. ${seccion.data.titulo} — ${curso.data.titulo}`}>
@@ -61,49 +68,14 @@ const [curso]: Curso[] = await getCollection('curso');
           {lecciones.length} lecciones
         </p>
 
-        <!-- Barra de progreso de la sección -->
-        <div class="card mt-4">
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="text-xs font-medium text-[var(--color-muted)]">Progreso</span>
-            <span id="progreso-seccion-texto" class="text-xs font-medium text-[var(--color-primary)]">
-              0 / {lecciones.length}
-            </span>
-          </div>
-          <div class="w-full h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
-            <div
-              id="progreso-seccion-barra"
-              class="h-full bg-[var(--color-primary)] rounded-full transition-all duration-500"
-              style="width: 0%"
-            ></div>
-          </div>
-        </div>
+        {/* Componente de React hidratado (Astro Island) que maneja el progreso y los checkboxes */}
+        <SeccionProgressTracker
+          client:load
+          seccionSlug={slug || ''}
+          lecciones={serializedLecciones}
+          initialCompleted={completedIds}
+        />
       </header>
-
-      <!-- Lista de lecciones con checkboxes -->
-      <ul class="space-y-2" id="lista-lecciones">
-        {lecciones.map((leccion) => (
-          <li
-            class="card leccion-item flex items-center gap-3"
-            data-leccion-id={leccion.data.id}
-          >
-            <input
-              type="checkbox"
-              id={"chk-" + leccion.data.id}
-              data-leccion-id={leccion.data.id}
-              class="w-5 h-5 rounded border-[var(--color-border)] text-[var(--color-primary)]
-                     focus:ring-[var(--color-primary)] cursor-pointer
-                     accent-[var(--color-primary)] transition-transform duration-200 hover:scale-110"
-            />
-            <label
-              for={"chk-" + leccion.data.id}
-              class="flex-1 text-sm sm:text-base text-[var(--color-text)] cursor-pointer
-                     select-none leading-snug transition-colors duration-300 leccion-label"
-            >
-              {leccion.data.titulo}
-            </label>
-          </li>
-        ))}
-      </ul>
 
       <!-- Navegación entre secciones -->
       <nav class="mt-10 flex items-center justify-between border-t border-[var(--color-border)] pt-6">
@@ -140,115 +112,3 @@ const [curso]: Curso[] = await getCollection('curso');
     </div>
   </main>
 </BaseLayout>
-
-<script>
-  let currentSyncCheckboxes: (() => void) | null = null;
-
-  function setupSeccion() {
-    const container = document.getElementById('seccion-container');
-    if (!container) {
-      if (currentSyncCheckboxes) {
-        window.removeEventListener('storage', currentSyncCheckboxes);
-        currentSyncCheckboxes = null;
-      }
-      return;
-    }
-
-    const slug = container.dataset.slug;
-    const STORAGE_KEY = `progreso-astro-wordpress-${slug}`;
-
-    const checkboxes = container.querySelectorAll(
-      '#lista-lecciones input[type="checkbox"]'
-    ) as NodeListOf<HTMLInputElement>;
-    const barraProgreso = document.getElementById('progreso-seccion-barra');
-    const textoProgreso = document.getElementById('progreso-seccion-texto');
-    const totalLecciones = checkboxes.length;
-
-    function loadCompleted() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      } catch {
-        return [];
-      }
-    }
-
-    function saveCompleted(ids: string[]) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-      window.dispatchEvent(new Event('storage'));
-    }
-
-    function syncCheckboxes() {
-      if (!document.getElementById('seccion-container')) return;
-      const completed = loadCompleted();
-      checkboxes.forEach((cb) => {
-        cb.checked = completed.includes(cb.dataset.leccionId || '');
-      });
-      actualizarProgreso();
-    }
-
-    function actualizarProgreso() {
-      const hechas = Array.from(checkboxes).filter((cb) => cb.checked).length;
-      const pct = totalLecciones > 0 ? (hechas / totalLecciones) * 100 : 0;
-
-      if (barraProgreso) {
-        barraProgreso.style.width = pct + '%';
-        if (pct === 100) {
-          barraProgreso.style.backgroundColor = 'var(--color-success)';
-        } else {
-          barraProgreso.style.backgroundColor = '';
-        }
-      }
-      if (textoProgreso) textoProgreso.textContent = `${hechas} / ${totalLecciones}`;
-
-      const progCard = document.querySelector('header .card');
-      if (progCard) {
-        if (totalLecciones > 0 && hechas >= totalLecciones) {
-          progCard.classList.add('border-completed');
-        } else {
-          progCard.classList.remove('border-completed');
-        }
-      }
-    }
-
-    function handleToggle(e: Event) {
-      const cb = e.currentTarget as HTMLInputElement;
-      const completed = loadCompleted();
-      const id = cb.dataset.leccionId;
-      if (!id) return;
-
-      if (cb.checked) {
-        if (!completed.includes(id)) completed.push(id);
-      } else {
-        const i = completed.indexOf(id);
-        if (i > -1) completed.splice(i, 1);
-      }
-
-      saveCompleted(completed);
-      actualizarProgreso();
-      window.dispatchEvent(new CustomEvent('progreso-update'));
-
-      const item = cb.closest('.leccion-item');
-      if (item) {
-        item.classList.add('scale-[1.02]');
-        setTimeout(() => item.classList.remove('scale-[1.02]'), 200);
-      }
-    }
-
-    if (checkboxes.length > 0) {
-      syncCheckboxes();
-      checkboxes.forEach((cb) => {
-        cb.onclick = handleToggle;
-      });
-
-      if (currentSyncCheckboxes) {
-        window.removeEventListener('storage', currentSyncCheckboxes);
-      }
-      currentSyncCheckboxes = syncCheckboxes;
-      window.addEventListener('storage', syncCheckboxes);
-    }
-  }
-
-  // Ejecutar en la carga inicial y tras cada transición de página de Astro
-  setupSeccion();
-  document.addEventListener('astro:page-load', setupSeccion);
-</script>
